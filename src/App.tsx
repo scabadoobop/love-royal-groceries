@@ -223,35 +223,59 @@ function App() {
         </header>
 
         <div className="royal-card" style={{ padding: 16 }}>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <input
-              placeholder="Add item name (e.g., Milk)"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              style={{ flex: 1, minWidth: 160, padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
-            />
-            <select
-              value={form.location}
-              onChange={(e) => setForm({ ...form, location: e.target.value as 'fridge' | 'pantry' })}
-              style={{ padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
-            >
-              <option value="fridge">Fridge</option>
-              <option value="pantry">Pantry</option>
-            </select>
-            <input
-              type="number"
-              min={0}
-              value={form.quantity}
-              onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
-              style={{ width: 90, padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
-            />
-            <input
-              type="number"
-              min={0}
-              value={form.lowThreshold}
-              onChange={(e) => setForm({ ...form, lowThreshold: Number(e.target.value) })}
-              style={{ width: 110, padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
-            />
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 160 }}>
+              <label style={{ fontSize: '12px', color: '#9d174d', marginBottom: '4px', fontWeight: 'bold' }}>
+                Item Name
+              </label>
+              <input
+                placeholder="Add item name (e.g., Milk)"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                style={{ padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
+              />
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontSize: '12px', color: '#9d174d', marginBottom: '4px', fontWeight: 'bold' }}>
+                Location
+              </label>
+              <select
+                value={form.location}
+                onChange={(e) => setForm({ ...form, location: e.target.value as 'fridge' | 'pantry' })}
+                style={{ padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
+              >
+                <option value="fridge">Fridge</option>
+                <option value="pantry">Pantry</option>
+              </select>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontSize: '12px', color: '#9d174d', marginBottom: '4px', fontWeight: 'bold' }}>
+                Quantity
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={form.quantity}
+                onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
+                style={{ width: 90, padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
+              />
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontSize: '12px', color: '#9d174d', marginBottom: '4px', fontWeight: 'bold' }}>
+                Low Alert
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={form.lowThreshold}
+                onChange={(e) => setForm({ ...form, lowThreshold: Number(e.target.value) })}
+                style={{ width: 110, padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
+              />
+            </div>
+            
             <button className="royal-button" onClick={addItem}>Add ❤</button>
           </div>
           <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>

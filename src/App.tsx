@@ -16,6 +16,14 @@ type Note = {
   author: string
 }
 
+type InviteCode = {
+  id: string
+  code: string
+  name: string
+  createdAt: number
+  isActive: boolean
+}
+
 function useLocalStorage<T>(key: string, initialValue: T) {
   const [value, setValue] = useState<T>(() => {
     try {
@@ -56,6 +64,12 @@ function App() {
   const [individualNotes, setIndividualNotes] = useLocalStorage<Note[]>(`notes:${household || 'default'}`, [])
   const [newGlobalNote, setNewGlobalNote] = useState('')
   const [newIndividualNote, setNewIndividualNote] = useState('')
+  
+  // Invite code system
+  const [inviteCode, setInviteCode] = useLocalStorage<string>('inviteCode', '')
+  const [isFriendMode, setIsFriendMode] = useState(false)
+  const [inviteCodes, setInviteCodes] = useLocalStorage<InviteCode[]>('inviteCodes', [])
+  const [newInviteCodeName, setNewInviteCodeName] = useState('')
 
   useEffect(() => {
     // Reset items binding when household changes
@@ -109,6 +123,39 @@ function App() {
     setIndividualNotes(individualNotes.filter(note => note.id !== id))
   }
 
+  function generateInviteCode() {
+    if (!newInviteCodeName.trim()) return
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase()
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    setInviteCodes([...inviteCodes, { id, code, name: newInviteCodeName.trim(), createdAt: Date.now(), isActive: true }])
+    setNewInviteCodeName('')
+  }
+
+  function deactivateInviteCode(id: string) {
+    setInviteCodes(inviteCodes.map(ic => ic.id === id ? { ...ic, isActive: false } : ic))
+  }
+
+  function activateInviteCode(id: string) {
+    setInviteCodes(inviteCodes.map(ic => ic.id === id ? { ...ic, isActive: true } : ic))
+  }
+
+  function useInviteCode(code: string) {
+    const foundCode = inviteCodes.find(ic => ic.code === code && ic.isActive)
+    if (foundCode) {
+      setInviteCode(code)
+      setIsFriendMode(true)
+      setHousehold('') // Clear household to start fresh
+      return true
+    }
+    return false
+  }
+
+  function exitFriendMode() {
+    setIsFriendMode(false)
+    setInviteCode('')
+    setHousehold('')
+  }
+
   function badge(it: Item) {
     if (it.quantity === 0) return <span className="pill badge-red">Out</span>
     if (it.quantity <= it.lowThreshold) return <span className="pill badge-yellow">Low</span>
@@ -127,18 +174,51 @@ function App() {
             <h1 className="royal-title" style={{ margin: 0 }}>Royal Pantry & Fridge</h1>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <select
-              value={household}
-              onChange={(e) => setHousehold(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: 12, border: '2px solid #f9a8d4', width: 160, background: 'white' }}
-            >
-              <option value="">Select Household</option>
-              <option value="House">🏠 House (Whole Family)</option>
-              <option value="Dream">💫 Dream</option>
-              <option value="Lala">🌟 Lala</option>
-              <option value="Jocelyn">✨ Jocelyn</option>
-              <option value="Angel">👼 Angel</option>
-            </select>
+            {!isFriendMode ? (
+              <>
+                <select
+                  value={household}
+                  onChange={(e) => setHousehold(e.target.value)}
+                  style={{ padding: '8px 12px', borderRadius: 12, border: '2px solid #f9a8d4', width: 160, background: 'white' }}
+                >
+                  <option value="">Select Household</option>
+                  <option value="House">🏠 House (Whole Family)</option>
+                  <option value="Dream">💫 Dream</option>
+                  <option value="Lala">🌟 Lala</option>
+                  <option value="Jocelyn">✨ Jocelyn</option>
+                  <option value="Angel">👼 Angel</option>
+                </select>
+                <input
+                  placeholder="Enter invite code"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value)}
+                  style={{ padding: '8px 12px', borderRadius: 12, border: '2px solid #f9a8d4', width: 140 }}
+                />
+                <button 
+                  className="royal-button" 
+                  onClick={() => useInviteCode(inviteCode)}
+                  style={{ padding: '8px 12px', fontSize: '12px' }}
+                >
+                  Use Code
+                </button>
+              </>
+            ) : (
+              <>
+                <input
+                  placeholder="Create household name"
+                  value={household}
+                  onChange={(e) => setHousehold(e.target.value)}
+                  style={{ padding: '8px 12px', borderRadius: 12, border: '2px solid #f9a8d4', width: 160, background: 'white' }}
+                />
+                <button 
+                  className="royal-button" 
+                  onClick={exitFriendMode}
+                  style={{ padding: '8px 12px', fontSize: '12px', background: '#6b7280' }}
+                >
+                  Exit Friend Mode
+                </button>
+              </>
+            )}
           </div>
         </header>
 
@@ -268,8 +348,124 @@ function App() {
         <footer style={{ textAlign: 'center', padding: 16, color: '#9d174d' }}>Made with ❤ for the royal household</footer>
           </div>
 
-          {/* Family Notes Sidebar */}
+          {/* Family Notes & Invite Codes Sidebar */}
           <div style={{ position: 'sticky', top: 16, height: 'fit-content' }}>
+            {/* Invite Code Management */}
+            {!isFriendMode && (
+              <div className="royal-card" style={{ padding: 16, marginBottom: 16 }}>
+                <h3 style={{ 
+                  margin: '0 0 16px 0', 
+                  color: '#9d174d', 
+                  fontSize: '18px',
+                  textAlign: 'center'
+                }}>
+                  🔑 Invite Code Manager
+                </h3>
+                
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: '8px' }}>
+                    <input
+                      placeholder="Friend's name"
+                      value={newInviteCodeName}
+                      onChange={(e) => setNewInviteCodeName(e.target.value)}
+                      style={{ flex: 1, padding: '8px 12px', border: '2px solid #f9a8d4', borderRadius: '8px' }}
+                    />
+                    <button 
+                      className="royal-button" 
+                      onClick={generateInviteCode}
+                      style={{ padding: '8px 12px', fontSize: '12px' }}
+                    >
+                      Generate
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gap: '8px' }}>
+                  {inviteCodes.map((ic) => (
+                    <div 
+                      key={ic.id} 
+                      style={{ 
+                        padding: '10px',
+                        background: ic.isActive ? '#f0f9ff' : '#f3f4f6',
+                        border: `1px solid ${ic.isActive ? '#bae6fd' : '#d1d5db'}`,
+                        borderRadius: '8px',
+                        opacity: ic.isActive ? 1 : 0.6
+                      }}
+                    >
+                      <div style={{ 
+                        fontSize: '12px', 
+                        color: '#0c4a6e', 
+                        marginBottom: '4px',
+                        fontWeight: 'bold'
+                      }}>
+                        {ic.name}
+                      </div>
+                      <div style={{ 
+                        color: '#374151',
+                        fontSize: '14px',
+                        fontFamily: 'monospace',
+                        fontWeight: 'bold',
+                        marginBottom: '6px'
+                      }}>
+                        Code: {ic.code}
+                      </div>
+                      <div style={{ 
+                        fontSize: '11px', 
+                        color: '#6b7280'
+                      }}>
+                        Created: {new Date(ic.createdAt).toLocaleDateString()}
+                      </div>
+                      <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
+                        {ic.isActive ? (
+                          <button 
+                            onClick={() => deactivateInviteCode(ic.id)}
+                            style={{ 
+                              background: '#f59e0b', 
+                              color: 'white', 
+                              border: 'none', 
+                              padding: '4px 8px', 
+                              borderRadius: '4px', 
+                              fontSize: '10px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Deactivate
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={() => activateInviteCode(ic.id)}
+                            style={{ 
+                              background: '#10b981', 
+                              color: 'white', 
+                              border: 'none', 
+                              padding: '4px 8px', 
+                              borderRadius: '4px', 
+                              fontSize: '10px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Activate
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {inviteCodes.length === 0 && (
+                    <div style={{ 
+                      textAlign: 'center', 
+                      padding: '16px', 
+                      color: '#6b7280', 
+                      fontSize: '14px',
+                      fontStyle: 'italic'
+                    }}>
+                      No invite codes yet. Generate one for a friend! 🔑
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Family Notes */}
             <div className="royal-card" style={{ padding: 16, minHeight: '400px' }}>
               <h3 style={{ 
                 margin: '0 0 16px 0', 

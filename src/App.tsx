@@ -176,44 +176,59 @@ function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {!isFriendMode ? (
               <>
-                <select
-                  value={household}
-                  onChange={(e) => setHousehold(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: 12, border: '2px solid #f9a8d4', width: 160, background: 'white' }}
-                >
-                  <option value="">Select Household</option>
-                  <option value="House">🏠 House (Whole Family)</option>
-                  <option value="Dream">💫 Dream</option>
-                  <option value="Lala">🌟 Lala</option>
-                  <option value="Jocelyn">✨ Jocelyn</option>
-                  <option value="Angel">👼 Angel</option>
-                </select>
-                <input
-                  placeholder="Enter invite code"
-                  value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: 12, border: '2px solid #f9a8d4', width: 140 }}
-                />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <label style={{ fontSize: '11px', color: '#9d174d', marginBottom: '2px', fontWeight: 'bold' }}>
+                    Select Household
+                  </label>
+                  <select
+                    value={household}
+                    onChange={(e) => setHousehold(e.target.value)}
+                    style={{ padding: '8px 12px', borderRadius: 12, border: '2px solid #f9a8d4', width: 160, background: 'white' }}
+                  >
+                    <option value="">Choose your household</option>
+                    <option value="House">🏠 House (Whole Family)</option>
+                    <option value="Dream">💫 Dream</option>
+                    <option value="Lala">🌟 Lala</option>
+                    <option value="Jocelyn">✨ Jocelyn</option>
+                    <option value="Angel">👼 Angel</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <label style={{ fontSize: '11px', color: '#9d174d', marginBottom: '2px', fontWeight: 'bold' }}>
+                    Invite Code
+                  </label>
+                  <input
+                    placeholder="Enter friend's code"
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value)}
+                    style={{ padding: '8px 12px', borderRadius: 12, border: '2px solid #f9a8d4', width: 140 }}
+                  />
+                </div>
                 <button 
                   className="royal-button" 
                   onClick={() => useInviteCode(inviteCode)}
-                  style={{ padding: '8px 12px', fontSize: '12px' }}
+                  style={{ padding: '8px 12px', fontSize: '12px', marginTop: '18px' }}
                 >
                   Use Code
                 </button>
               </>
             ) : (
               <>
-                <input
-                  placeholder="Create household name"
-                  value={household}
-                  onChange={(e) => setHousehold(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: 12, border: '2px solid #f9a8d4', width: 160, background: 'white' }}
-                />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <label style={{ fontSize: '11px', color: '#9d174d', marginBottom: '2px', fontWeight: 'bold' }}>
+                    Your Household Name
+                  </label>
+                  <input
+                    placeholder="Enter your household name"
+                    value={household}
+                    onChange={(e) => setHousehold(e.target.value)}
+                    style={{ padding: '8px 12px', borderRadius: 12, border: '2px solid #f9a8d4', width: 160, background: 'white' }}
+                  />
+                </div>
                 <button 
                   className="royal-button" 
                   onClick={exitFriendMode}
-                  style={{ padding: '8px 12px', fontSize: '12px', background: '#6b7280' }}
+                  style={{ padding: '8px 12px', fontSize: '12px', background: '#6b7280', marginTop: '18px' }}
                 >
                   Exit Friend Mode
                 </button>
@@ -223,6 +238,15 @@ function App() {
         </header>
 
         <div className="royal-card" style={{ padding: 16 }}>
+          <div style={{ marginBottom: 16, padding: 12, background: '#fef3f2', border: '1px solid #fecaca', borderRadius: 12 }}>
+            <h4 style={{ margin: '0 0 8px 0', color: '#9d174d', fontSize: '14px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              💡 <span>Quick Guide</span>
+            </h4>
+            <p style={{ margin: 0, fontSize: '12px', color: '#7f1d1d', lineHeight: '1.4' }}>
+              Add items to track your groceries! Choose the location (fridge or pantry), set quantity, and add a low alert threshold. 
+              Use the search and filter options below to find items quickly.
+            </p>
+          </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 160 }}>
               <label style={{ fontSize: '12px', color: '#9d174d', marginBottom: '4px', fontWeight: 'bold' }}>
@@ -260,6 +284,7 @@ function App() {
                 value={form.quantity}
                 onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
                 style={{ width: 90, padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
+                title="How many of this item do you have?"
               />
             </div>
             
@@ -273,22 +298,44 @@ function App() {
                 value={form.lowThreshold}
                 onChange={(e) => setForm({ ...form, lowThreshold: Number(e.target.value) })}
                 style={{ width: 110, padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
+                title="Alert when quantity drops to this number"
               />
             </div>
             
-            <button className="royal-button" onClick={addItem}>Add ❤</button>
+            <button 
+              className="royal-button" 
+              onClick={addItem}
+              disabled={!form.name.trim()}
+              style={{ 
+                opacity: !form.name.trim() ? 0.6 : 1,
+                cursor: !form.name.trim() ? 'not-allowed' : 'pointer'
+              }}
+              title={!form.name.trim() ? 'Please enter an item name first' : 'Add this item to your inventory'}
+            >
+              Add ❤
+            </button>
           </div>
-          <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <input
-              placeholder="Search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              style={{ flex: 1, minWidth: 160, padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
-            />
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button className="royal-button" onClick={() => setFilter('all')} style={{ opacity: filter === 'all' ? 1 : 0.6 }}>All</button>
-              <button className="royal-button" onClick={() => setFilter('fridge')} style={{ opacity: filter === 'fridge' ? 1 : 0.6 }}>Fridge</button>
-              <button className="royal-button" onClick={() => setFilter('pantry')} style={{ opacity: filter === 'pantry' ? 1 : 0.6 }}>Pantry</button>
+          <div style={{ marginTop: 16, display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 160 }}>
+              <label style={{ fontSize: '12px', color: '#9d174d', marginBottom: '4px', fontWeight: 'bold' }}>
+                Search Items
+              </label>
+              <input
+                placeholder="Search by item name..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                style={{ padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontSize: '12px', color: '#9d174d', marginBottom: '4px', fontWeight: 'bold' }}>
+                Filter by Location
+              </label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button className="royal-button" onClick={() => setFilter('all')} style={{ opacity: filter === 'all' ? 1 : 0.6 }}>All</button>
+                <button className="royal-button" onClick={() => setFilter('fridge')} style={{ opacity: filter === 'fridge' ? 1 : 0.6 }}>Fridge</button>
+                <button className="royal-button" onClick={() => setFilter('pantry')} style={{ opacity: filter === 'pantry' ? 1 : 0.6 }}>Pantry</button>
+              </div>
             </div>
           </div>
         </div>
@@ -301,14 +348,30 @@ function App() {
             <h3 style={{ margin: '0 0 12px 0', color: '#9d174d', display: 'flex', alignItems: 'center', gap: 8 }}>
               💭 <span>Personal Notes (Just for {household})</span>
             </h3>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-              <input
-                placeholder={`Leave a personal note for ${household}...`}
-                value={newIndividualNote}
-                onChange={(e) => setNewIndividualNote(e.target.value)}
-                style={{ flex: 1, padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
-              />
-              <button className="royal-button" onClick={addIndividualNote}>Add Note</button>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: '12px', color: '#9d174d', marginBottom: '4px', fontWeight: 'bold', display: 'block' }}>
+                Add Personal Note
+              </label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  placeholder={`Leave a personal note for ${household}...`}
+                  value={newIndividualNote}
+                  onChange={(e) => setNewIndividualNote(e.target.value)}
+                  style={{ flex: 1, padding: '10px 12px', border: '2px solid #f9a8d4', borderRadius: 12 }}
+                />
+                <button 
+                  className="royal-button" 
+                  onClick={addIndividualNote}
+                  disabled={!newIndividualNote.trim()}
+                  style={{ 
+                    opacity: !newIndividualNote.trim() ? 0.6 : 1,
+                    cursor: !newIndividualNote.trim() ? 'not-allowed' : 'pointer'
+                  }}
+                  title={!newIndividualNote.trim() ? 'Please enter a note first' : 'Add this personal note'}
+                >
+                  Add Note
+                </button>
+              </div>
             </div>
             <div style={{ display: 'grid', gap: 8 }}>
               {individualNotes.map((note) => (
@@ -355,10 +418,44 @@ function App() {
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <button className="royal-button" onClick={() => updateQty(it.id, -1)}>-</button>
-                <div className="pill" style={{ background: '#fce7f3', minWidth: 40, textAlign: 'center' }}>{it.quantity}</div>
-                <button className="royal-button" onClick={() => updateQty(it.id, +1)}>+</button>
-                <button className="royal-button" onClick={() => removeItem(it.id)} style={{ background: '#ef4444' }}>Remove</button>
+                <button 
+                  className="royal-button" 
+                  onClick={() => updateQty(it.id, -1)}
+                  title="Decrease quantity by 1"
+                  style={{ minWidth: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  -
+                </button>
+                <div 
+                  className="pill" 
+                  style={{ 
+                    background: '#fce7f3', 
+                    minWidth: 40, 
+                    textAlign: 'center',
+                    padding: '6px 8px',
+                    fontWeight: 'bold',
+                    color: '#9d174d'
+                  }}
+                  title={`Current quantity: ${it.quantity}`}
+                >
+                  {it.quantity}
+                </div>
+                <button 
+                  className="royal-button" 
+                  onClick={() => updateQty(it.id, +1)}
+                  title="Increase quantity by 1"
+                  style={{ minWidth: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  +
+                </button>
+                <button 
+                  className="royal-button" 
+                  onClick={() => removeItem(it.id)} 
+                  style={{ background: '#ef4444' }}
+                  title="Remove this item completely"
+                >
+                  Remove
+                </button>
               </div>
             </div>
           ))}
@@ -387,9 +484,12 @@ function App() {
                 </h3>
                 
                 <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', gap: 8, marginBottom: '8px' }}>
+                  <label style={{ fontSize: '12px', color: '#9d174d', marginBottom: '4px', fontWeight: 'bold', display: 'block' }}>
+                    Create New Invite Code
+                  </label>
+                  <div style={{ display: 'flex', gap: 8 }}>
                     <input
-                      placeholder="Friend's name"
+                      placeholder="Enter friend's name"
                       value={newInviteCodeName}
                       onChange={(e) => setNewInviteCodeName(e.target.value)}
                       style={{ flex: 1, padding: '8px 12px', border: '2px solid #f9a8d4', borderRadius: '8px' }}
@@ -397,7 +497,14 @@ function App() {
                     <button 
                       className="royal-button" 
                       onClick={generateInviteCode}
-                      style={{ padding: '8px 12px', fontSize: '12px' }}
+                      disabled={!newInviteCodeName.trim()}
+                      style={{ 
+                        padding: '8px 12px', 
+                        fontSize: '12px',
+                        opacity: !newInviteCodeName.trim() ? 0.6 : 1,
+                        cursor: !newInviteCodeName.trim() ? 'not-allowed' : 'pointer'
+                      }}
+                      title={!newInviteCodeName.trim() ? 'Please enter a friend\'s name first' : 'Generate invite code for this friend'}
                     >
                       Generate
                     </button>
@@ -501,6 +608,9 @@ function App() {
               </h3>
               
               <div style={{ marginBottom: '16px' }}>
+                <label style={{ fontSize: '12px', color: '#9d174d', marginBottom: '4px', fontWeight: 'bold', display: 'block' }}>
+                  Add Family Note
+                </label>
                 <textarea
                   placeholder="Leave a note for the whole family..."
                   value={newGlobalNote}
@@ -519,13 +629,16 @@ function App() {
                 <button 
                   className="royal-button" 
                   onClick={addGlobalNote} 
-                  disabled={!household}
+                  disabled={!household || !newGlobalNote.trim()}
                   style={{ 
                     width: '100%', 
-                    marginTop: '8px'
+                    marginTop: '8px',
+                    opacity: (!household || !newGlobalNote.trim()) ? 0.6 : 1,
+                    cursor: (!household || !newGlobalNote.trim()) ? 'not-allowed' : 'pointer'
                   }}
+                  title={!household ? 'Please select a household first' : !newGlobalNote.trim() ? 'Please enter a note first' : 'Add this family note'}
                 >
-                  Add Note
+                  Add Family Note
                 </button>
               </div>
 

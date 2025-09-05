@@ -1,69 +1,194 @@
-# React + TypeScript + Vite
+# 👑 Royal Pantry & Fridge
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A secure, multi-tenant household grocery management system with real-time collaboration features.
 
-Currently, two official plugins are available:
+## ✨ Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🔐 **Secure Authentication** - JWT-based auth with household key access
+- 🛒 **Grocery Management** - Track items, quantities, and low stock alerts
+- 💬 **Real-time Forum** - Household discussions about recipes and tips
+- 📝 **Smart Notes** - Personal and family notes system
+- 👥 **Multi-tenant** - Secure household isolation
+- 📱 **Mobile-friendly** - Works on all devices
+- 🔄 **Real-time Updates** - Live collaboration via WebSocket
+- 📧 **Email Recovery** - Secure password reset system
 
-## Expanding the ESLint configuration
+## 🚀 Live Demo
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+**Frontend:** [View on GitHub Pages](https://yourusername.github.io/love-royal-groceries)
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**Default Household Key:** `ROYAL2024` (for testing)
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## 🏗️ Architecture
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Frontend (This Repository)
+- **React 19** with TypeScript
+- **Vite** for fast development and building
+- **PWA** support for mobile installation
+- **GitHub Pages** deployment ready
+
+### Backend (Separate Repository)
+- **Node.js/Express** API server
+- **PostgreSQL** database
+- **JWT Authentication** with bcrypt
+- **WebSocket** for real-time features
+- **Email** system for password recovery
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+
+- PostgreSQL 12+ (for backend)
+- Git
+
+### Frontend Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/love-royal-groceries.git
+   cd love-royal-groceries
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open in browser:**
+   ```
+   http://localhost:5173
+   ```
+
+### Backend Setup
+
+See the [Backend README](backend/README.md) for detailed setup instructions.
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+# Frontend Environment Variables
+VITE_API_URL=http://localhost:3001/api
+# For production: https://your-backend-domain.com/api
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Backend Configuration
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+See `backend/env.example` for all required backend environment variables.
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 📱 Usage
+
+1. **Get a household key** from your family admin
+2. **Visit the app** and enter the household key
+3. **Create your account** with username and password
+4. **Start managing groceries** and collaborating with your family!
+
+## 🛡️ Security Features
+
+- **Household Keys** - Admin-generated keys for secure access
+- **Password Security** - bcrypt hashing with 12 rounds
+- **JWT Tokens** - Secure authentication
+- **Rate Limiting** - Prevents abuse
+- **Data Isolation** - Each household's data is completely separate
+- **HTTPS Ready** - Secure communication
+- **Input Validation** - Prevents injection attacks
+
+## 🚀 Deployment
+
+### GitHub Pages (Frontend)
+
+The app is configured for automatic deployment to GitHub Pages:
+
+1. **Push to main branch** - GitHub Actions will automatically deploy
+2. **Manual deployment:**
+   ```bash
+   npm run deploy
+   ```
+
+### Backend Deployment
+
+Deploy the backend to your preferred platform:
+- **Heroku** (free tier available)
+- **Railway** (free tier available)
+- **Vercel** + PlanetScale
+- **DigitalOcean** App Platform
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
+
+## 🏠 Household Management
+
+### Admin Features
+- Generate household keys
+- Manage household members
+- Update household settings
+- View member activity
+
+### Member Features
+- Access grocery inventory
+- Add/edit/delete items
+- Participate in forum discussions
+- Leave notes for family
+
+## 💬 Forum Categories
+
+- **🍳 Recipes** - Share and discuss recipes
+- **🧽 Cleaning Tips** - Household maintenance
+- **📦 Storage Solutions** - Organization tips
+- **💬 General Discussion** - Family announcements
+
+## 🔄 Real-time Features
+
+- **Live grocery updates** - See changes instantly
+- **Forum discussions** - Real-time chat
+- **Typing indicators** - Know when someone is typing
+- **Note notifications** - Get notified of new notes
+
+## 📊 Technology Stack
+
+### Frontend
+- React 19
+- TypeScript
+- Vite
+- CSS3 (Custom styling)
+- PWA (Progressive Web App)
+
+### Backend
+- Node.js
+- Express.js
+- PostgreSQL
+- JWT Authentication
+- WebSocket (Socket.io)
+- Nodemailer
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+Private - Royal Groceries Household System
+
+## 🆘 Support
+
+If you encounter any issues:
+
+1. Check the [Deployment Guide](DEPLOYMENT.md)
+2. Review the [Backend Documentation](backend/README.md)
+3. Check browser console for errors
+4. Verify backend is running and accessible
+
+---
+
+**Made with ❤ for the royal household** 👑

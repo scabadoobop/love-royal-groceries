@@ -11,13 +11,18 @@ CREATE TABLE households (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT true,
-    admin_user_id UUID REFERENCES users(id)
+    admin_user_id UUID
 );
 
 -- Create a sentinel default household to satisfy foreign keys for default data
 INSERT INTO households (id, name, key_code, is_active)
 VALUES ('00000000-0000-0000-0000-000000000000', 'Public Default', 'DEFAULT-PLACEHOLDER', true)
 ON CONFLICT (id) DO NOTHING;
+
+-- Seed a default household with well-known key for first-run testing
+INSERT INTO households (name, key_code)
+VALUES ('Royal Household', 'ROYAL2024')
+ON CONFLICT (key_code) DO NOTHING;
 
 -- Users table (replaces local storage user management)
 CREATE TABLE users (

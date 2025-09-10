@@ -4,7 +4,7 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Households table (replaces the simple household selection)
-CREATE TABLE households (
+CREATE TABLE IF NOT EXISTS households (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
     key_code VARCHAR(20) UNIQUE NOT NULL, -- The key users enter to join
@@ -25,7 +25,7 @@ VALUES ('Royal Household', 'ROYAL2024')
 ON CONFLICT (key_code) DO NOTHING;
 
 -- Users table (replaces local storage user management)
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -42,7 +42,7 @@ CREATE TABLE users (
 );
 
 -- Grocery items (replaces local storage items)
-CREATE TABLE grocery_items (
+CREATE TABLE IF NOT EXISTS grocery_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     household_id UUID REFERENCES households(id) NOT NULL,
     name VARCHAR(255) NOT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE grocery_items (
 );
 
 -- Notes system (replaces local storage notes)
-CREATE TABLE notes (
+CREATE TABLE IF NOT EXISTS notes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     household_id UUID REFERENCES households(id) NOT NULL,
     author_id UUID REFERENCES users(id) NOT NULL,
@@ -66,7 +66,7 @@ CREATE TABLE notes (
 );
 
 -- Forum/Thread system for household discussions
-CREATE TABLE forum_categories (
+CREATE TABLE IF NOT EXISTS forum_categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     household_id UUID REFERENCES households(id) NOT NULL,
     name VARCHAR(100) NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE forum_categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE forum_threads (
+CREATE TABLE IF NOT EXISTS forum_threads (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     category_id UUID REFERENCES forum_categories(id) NOT NULL,
     household_id UUID REFERENCES households(id) NOT NULL,
@@ -87,7 +87,7 @@ CREATE TABLE forum_threads (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE forum_posts (
+CREATE TABLE IF NOT EXISTS forum_posts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     thread_id UUID REFERENCES forum_threads(id) NOT NULL,
     author_id UUID REFERENCES users(id) NOT NULL,

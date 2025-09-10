@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { apiService } from '../services/api';
 import './LandingPage.css';
 
 interface Household {
@@ -49,21 +50,14 @@ export default function LandingPage({ onKeyValidated }: LandingPageProps) {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/validate-key', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keyCode: keyCode.trim() })
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.valid) {
+      const { data, error } = await apiService.validateKey(keyCode.trim());
+      if (data?.valid) {
         setHousehold(data.household);
         setStep('register');
       } else {
-        setError(data.error || 'Invalid household key');
+        setError(error || 'Invalid household key');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to validate key. Please try again.');
     } finally {
       setLoading(false);
@@ -82,27 +76,18 @@ export default function LandingPage({ onKeyValidated }: LandingPageProps) {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: regForm.username,
-          email: regForm.email,
-          password: regForm.password,
-          householdKey: keyCode
-        })
+      const { data, error } = await apiService.register({
+        username: regForm.username,
+        email: regForm.email,
+        password: regForm.password,
+        householdKey: keyCode,
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+      if (data) {
         onKeyValidated(data.user);
       } else {
-        setError(data.error || 'Registration failed');
+        setError(error || 'Registration failed');
       }
-    } catch (err) {
+    } catch {
       setError('Registration failed. Please try again.');
     } finally {
       setLoading(false);
@@ -116,22 +101,16 @@ export default function LandingPage({ onKeyValidated }: LandingPageProps) {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginForm)
+      const { data, error } = await apiService.login({
+        username: loginForm.username,
+        password: loginForm.password,
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+      if (data) {
         onKeyValidated(data.user);
       } else {
-        setError(data.error || 'Login failed');
+        setError(error || 'Login failed');
       }
-    } catch (err) {
+    } catch {
       setError('Login failed. Please try again.');
     } finally {
       setLoading(false);

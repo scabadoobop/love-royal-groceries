@@ -24,7 +24,8 @@ export default function LandingPage({ onKeyValidated }: LandingPageProps) {
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    householdKey: ''
   });
 
   // Login form state
@@ -51,6 +52,7 @@ export default function LandingPage({ onKeyValidated }: LandingPageProps) {
         username: regForm.username,
         email: regForm.email,
         password: regForm.password,
+        householdKey: regForm.householdKey?.trim() || undefined,
       });
       if (data) {
         onKeyValidated(data.user);
@@ -158,6 +160,18 @@ export default function LandingPage({ onKeyValidated }: LandingPageProps) {
                     className="royal-input"
                     required
                     minLength={8}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="householdKey">Household Key (optional)</label>
+                  <input
+                    id="householdKey"
+                    type="text"
+                    value={regForm.householdKey}
+                    onChange={(e) => setRegForm({...regForm, householdKey: e.target.value.toUpperCase()})}
+                    placeholder="Enter a key if you were given one"
+                    className="royal-input"
                   />
                 </div>
 

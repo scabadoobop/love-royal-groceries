@@ -118,7 +118,7 @@ export default function MainApp({ user, onLogout }: MainAppProps) {
         {activeTab === 'groceries' && <GroceryManager />}
         {activeTab === 'notes' && <NotesManager />}
         {activeTab === 'forum' && <ForumManager />}
-        {activeTab === 'household' && <HouseholdManager user={user} />}
+        {activeTab === 'household' && <HouseholdManager user={user} onLogout={onLogout} />}
       </main>
     </div>
   );

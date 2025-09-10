@@ -6,8 +6,16 @@ interface Household {
   name: string;
 }
 
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  householdId: string;
+  role: string;
+}
+
 interface LandingPageProps {
-  onKeyValidated: (household: Household) => void;
+  onKeyValidated: (user: User) => void;
 }
 
 export default function LandingPage({ onKeyValidated }: LandingPageProps) {

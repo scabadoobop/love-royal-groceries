@@ -43,12 +43,14 @@ router.post('/validate-key', [
   }
 });
 
-// Register new user with household key
+// Register new user (household key optional)
+// If householdKey is provided, user joins existing household.
+// If not, a new household is created and the user becomes admin.
 router.post('/register', [
   body('username').trim().isLength({ min: 3, max: 50 }).withMessage('Username must be 3-50 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
   body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
-  body('householdKey').trim().isLength({ min: 6, max: 20 }).withMessage('Household key required')
+  body('householdKey').optional().trim().isLength({ min: 6, max: 20 }).withMessage('Household key must be 6-20 characters')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -57,18 +59,6 @@ router.post('/register', [
     }
 
     const { username, email, password, householdKey } = req.body;
-
-    // Validate household key
-    const householdResult = await query(
-      'SELECT id, name FROM households WHERE key_code = $1 AND is_active = true',
-      [householdKey.toUpperCase()]
-    );
-
-    if (householdResult.rows.length === 0) {
-      return res.status(400).json({ error: 'Invalid household key' });
-    }
-
-    const household = householdResult.rows[0];
 
     // Check if username or email already exists
     const existingUser = await query(
@@ -84,14 +74,42 @@ router.post('/register', [
     const saltRounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // Create user in transaction
+    // Create user (and household if needed) in a single transaction
     const result = await transaction(async (client) => {
+      let targetHouseholdId = null;
+      let targetHouseholdName = null;
+      let userRole = 'member';
+
+      if (householdKey) {
+        // Try to join existing household via key
+        const householdResult = await client.query(
+          'SELECT id, name FROM households WHERE key_code = $1 AND is_active = true',
+          [householdKey.toUpperCase()]
+        );
+
+        if (householdResult.rows.length === 0) {
+          throw new Error('INVALID_HOUSEHOLD_KEY');
+        }
+        targetHouseholdId = householdResult.rows[0].id;
+        targetHouseholdName = householdResult.rows[0].name;
+      } else {
+        // Create a new household with a generated key (kept internal)
+        const generatedKey = crypto.randomBytes(6).toString('hex').toUpperCase();
+        targetHouseholdName = `${username}'s Household`;
+        const hh = await client.query(
+          'INSERT INTO households (name, key_code) VALUES ($1, $2) RETURNING id',
+          [targetHouseholdName, generatedKey]
+        );
+        targetHouseholdId = hh.rows[0].id;
+        userRole = 'admin';
+      }
+
       const userResult = await client.query(
-        'INSERT INTO users (username, email, password_hash, household_id) VALUES ($1, $2, $3, $4) RETURNING id, username, email, household_id, role, created_at',
-        [username, email, passwordHash, household.id]
+        'INSERT INTO users (username, email, password_hash, household_id, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, email, household_id, role, created_at',
+        [username, email, passwordHash, targetHouseholdId, userRole]
       );
 
-      return userResult.rows[0];
+      return { user: userResult.rows[0], householdName: targetHouseholdName };
     });
 
     // Generate JWT token
@@ -99,7 +117,7 @@ router.post('/register', [
 
     // Send welcome email (optional)
     try {
-      await sendWelcomeEmail(email, username, household.name);
+      await sendWelcomeEmail(email, username, result.householdName || 'Your Household');
     } catch (emailError) {
       console.error('Welcome email failed:', emailError);
       // Don't fail registration if email fails
@@ -109,15 +127,18 @@ router.post('/register', [
       message: 'User registered successfully',
       token,
       user: {
-        id: result.id,
-        username: result.username,
-        email: result.email,
-        householdId: result.household_id,
-        role: result.role
+        id: result.user.id,
+        username: result.user.username,
+        email: result.user.email,
+        householdId: result.user.household_id,
+        role: result.user.role
       }
     });
 
   } catch (error) {
+    if (error && error.message === 'INVALID_HOUSEHOLD_KEY') {
+      return res.status(400).json({ error: 'Invalid household key' });
+    }
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Server error during registration' });
   }

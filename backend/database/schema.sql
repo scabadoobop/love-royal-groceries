@@ -1,5 +1,7 @@
--- Royal Groceries Database Schema
 -- This creates all necessary tables for the secure multi-tenant system
+
+-- Required for gen_random_uuid()
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Households table (replaces the simple household selection)
 CREATE TABLE households (
@@ -11,6 +13,11 @@ CREATE TABLE households (
     is_active BOOLEAN DEFAULT true,
     admin_user_id UUID REFERENCES users(id)
 );
+
+-- Create a sentinel default household to satisfy foreign keys for default data
+INSERT INTO households (id, name, key_code, is_active)
+VALUES ('00000000-0000-0000-0000-000000000000', 'Public Default', 'DEFAULT-PLACEHOLDER', true)
+ON CONFLICT (id) DO NOTHING;
 
 -- Users table (replaces local storage user management)
 CREATE TABLE users (

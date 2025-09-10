@@ -32,7 +32,8 @@ router.post('/', [
   body('name').trim().isLength({ min: 1, max: 255 }).withMessage('Item name required'),
   body('location').isIn(['fridge', 'pantry']).withMessage('Location must be fridge or pantry'),
   body('quantity').isInt({ min: 0 }).withMessage('Quantity must be non-negative integer'),
-  body('lowThreshold').isInt({ min: 0 }).withMessage('Low threshold must be non-negative integer')
+  body('lowThreshold').isInt({ min: 0 }).withMessage('Low threshold must be non-negative integer'),
+  body('category').optional().trim().isLength({ max: 50 }).withMessage('Category max length is 50')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -40,13 +41,13 @@ router.post('/', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, location, quantity, lowThreshold } = req.body;
+    const { name, location, quantity, lowThreshold, category } = req.body;
 
     const result = await query(
-      `INSERT INTO grocery_items (household_id, name, location, quantity, low_threshold, created_by) 
-       VALUES ($1, $2, $3, $4, $5, $6) 
+      `INSERT INTO grocery_items (household_id, name, location, quantity, low_threshold, created_by, category) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7) 
        RETURNING *`,
-      [req.user.household_id, name, location, quantity, lowThreshold, req.user.id]
+      [req.user.household_id, name, location, quantity, lowThreshold, req.user.id, category || null]
     );
 
     res.status(201).json({ item: result.rows[0] });
@@ -98,7 +99,8 @@ router.put('/:id', [
   body('name').trim().isLength({ min: 1, max: 255 }).withMessage('Item name required'),
   body('location').isIn(['fridge', 'pantry']).withMessage('Location must be fridge or pantry'),
   body('quantity').isInt({ min: 0 }).withMessage('Quantity must be non-negative integer'),
-  body('lowThreshold').isInt({ min: 0 }).withMessage('Low threshold must be non-negative integer')
+  body('lowThreshold').isInt({ min: 0 }).withMessage('Low threshold must be non-negative integer'),
+  body('category').optional().trim().isLength({ max: 50 }).withMessage('Category max length is 50')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -107,14 +109,14 @@ router.put('/:id', [
     }
 
     const { id } = req.params;
-    const { name, location, quantity, lowThreshold } = req.body;
+    const { name, location, quantity, lowThreshold, category } = req.body;
 
     const result = await query(
       `UPDATE grocery_items 
-       SET name = $1, location = $2, quantity = $3, low_threshold = $4, updated_at = CURRENT_TIMESTAMP 
-       WHERE id = $5 AND household_id = $6 
+       SET name = $1, location = $2, quantity = $3, low_threshold = $4, category = $5, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $6 AND household_id = $7 
        RETURNING *`,
-      [name, location, quantity, lowThreshold, id, req.user.household_id]
+      [name, location, quantity, lowThreshold, category || null, id, req.user.household_id]
     );
 
     if (result.rows.length === 0) {

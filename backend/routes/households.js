@@ -107,4 +107,59 @@ router.put('/name', [
   }
 });
 
+// Admin: update member role
+router.put('/members/:memberId/role', [requireAdmin, body('role').isIn(['admin', 'member'])], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { memberId } = req.params;
+    const { role } = req.body;
+
+    // Ensure target user is in same household
+    const result = await query(
+      'UPDATE users SET role = $1 WHERE id = $2 AND household_id = $3 RETURNING id, username, email, role',
+      [role, memberId, req.user.household_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Member not found' });
+    }
+
+    res.json({ member: result.rows[0] });
+  } catch (error) {
+    console.error('Update member role error:', error);
+    res.status(500).json({ error: 'Server error updating member role' });
+  }
+});
+
+// Admin: remove member from household
+router.delete('/members/:memberId', requireAdmin, async (req, res) => {
+  try {
+    const { memberId } = req.params;
+
+    // Prevent removing self accidentally
+    if (memberId === req.user.id) {
+      return res.status(400).json({ error: 'You cannot remove yourself' });
+    }
+
+    // Deactivate the user in this household
+    const result = await query(
+      'UPDATE users SET is_active = false WHERE id = $1 AND household_id = $2 RETURNING id',
+      [memberId, req.user.household_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Member not found' });
+    }
+
+    res.json({ message: 'Member removed successfully' });
+  } catch (error) {
+    console.error('Remove member error:', error);
+    res.status(500).json({ error: 'Server error removing member' });
+  }
+});
+
 module.exports = router;

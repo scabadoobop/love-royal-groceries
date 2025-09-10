@@ -216,6 +216,19 @@ class ApiService {
     });
   }
 
+  async updateMemberRole(memberId: string, role: 'admin' | 'member') {
+    return this.request<{ member: any }>(`/households/members/${memberId}/role`, {
+      method: 'PUT',
+      body: JSON.stringify({ role }),
+    });
+  }
+
+  async removeMember(memberId: string) {
+    return this.request(`/households/members/${memberId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Forum
   async getForumCategories() {
     return this.request<{ categories: any[] }>('/forum/categories');

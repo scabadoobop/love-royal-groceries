@@ -276,6 +276,41 @@ export default function HouseholdManager({ user, onLogout }: HouseholdManagerPro
                   )}
                 </div>
               </div>
+              {user.role === 'admin' && user.id !== member.id && (
+                <div className="member-actions">
+                  {member.role === 'member' ? (
+                    <button
+                      className="royal-button small"
+                      onClick={async () => {
+                        const res = await apiService.updateMemberRole(member.id, 'admin');
+                        if (res.data) setMembers(members.map(m => m.id === member.id ? { ...m, role: 'admin' } : m));
+                      }}
+                    >
+                      Make Admin
+                    </button>
+                  ) : (
+                    <button
+                      className="royal-button small"
+                      onClick={async () => {
+                        const res = await apiService.updateMemberRole(member.id, 'member');
+                        if (res.data) setMembers(members.map(m => m.id === member.id ? { ...m, role: 'member' } : m));
+                      }}
+                    >
+                      Make Member
+                    </button>
+                  )}
+                  <button
+                    className="royal-button danger small"
+                    onClick={async () => {
+                      if (!confirm(`Remove ${member.username}?`)) return;
+                      const res = await apiService.removeMember(member.id);
+                      if (!res.error) setMembers(members.filter(m => m.id !== member.id));
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

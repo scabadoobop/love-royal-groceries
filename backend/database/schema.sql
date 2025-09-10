@@ -54,6 +54,18 @@ CREATE TABLE IF NOT EXISTS grocery_items (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Optional free-form category for items (for extensible categories)
+ALTER TABLE grocery_items ADD COLUMN IF NOT EXISTS category VARCHAR(50);
+
+-- Household-specific grocery categories
+CREATE TABLE IF NOT EXISTS grocery_categories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    household_id UUID REFERENCES households(id) NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(household_id, name)
+);
+
 -- Notes system (replaces local storage notes)
 CREATE TABLE IF NOT EXISTS notes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

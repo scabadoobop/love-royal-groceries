@@ -173,7 +173,7 @@ router.get('/low-stock', async (req, res) => {
 // Search grocery items
 router.get('/search', async (req, res) => {
   try {
-    const { q, location } = req.query;
+    const { q, location, category } = req.query;
     
     let queryText = `
       SELECT gi.*, u.username as created_by_name 
@@ -194,6 +194,12 @@ router.get('/search', async (req, res) => {
       paramCount++;
       queryText += ` AND gi.location = $${paramCount}`;
       queryParams.push(location);
+    }
+
+    if (category) {
+      paramCount++;
+      queryText += ` AND gi.category = $${paramCount}`;
+      queryParams.push(String(category));
     }
 
     queryText += ' ORDER BY gi.name ASC';

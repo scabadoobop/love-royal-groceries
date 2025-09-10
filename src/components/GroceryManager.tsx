@@ -8,6 +8,7 @@ interface GroceryItem {
   location: 'fridge' | 'pantry';
   quantity: number;
   low_threshold: number;
+  category?: string | null;
   created_by_name?: string;
   created_at: string;
   updated_at: string;
@@ -18,14 +19,18 @@ export default function GroceryManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<'all' | 'fridge' | 'pantry'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [query, setQuery] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [form, setForm] = useState({
     name: '',
     location: 'fridge' as 'fridge' | 'pantry',
     quantity: 1,
-    lowThreshold: 1
+    lowThreshold: 1,
+    category: ''
   });
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [newCategory, setNewCategory] = useState('');
 
   useEffect(() => {
     loadItems();
@@ -34,12 +39,16 @@ export default function GroceryManager() {
   const loadItems = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getGroceries();
-      if (response.data) {
-        setItems(response.data.items);
+      const [itemsRes, catsRes] = await Promise.all([
+        apiService.getGroceries(),
+        apiService.listGroceryCategories()
+      ]);
+      if (itemsRes.data) {
+        setItems(itemsRes.data.items);
       } else {
-        setError(response.error || 'Failed to load items');
+        setError(itemsRes.error || 'Failed to load items');
       }
+      if (catsRes.data) setCategories(catsRes.data.categories);
     } catch (err) {
       setError('Failed to load items');
     } finally {
@@ -55,12 +64,13 @@ export default function GroceryManager() {
         name: form.name.trim(),
         location: form.location,
         quantity: Math.max(0, form.quantity),
-        lowThreshold: Math.max(0, form.lowThreshold)
+        lowThreshold: Math.max(0, form.lowThreshold),
+        category: form.category?.trim() || undefined
       });
 
       if (response.data) {
         setItems([...items, response.data.item]);
-        setForm({ name: '', location: form.location, quantity: 1, lowThreshold: form.lowThreshold });
+        setForm({ name: '', location: form.location, quantity: 1, lowThreshold: form.lowThreshold, category: '' });
         setShowAddForm(false);
       } else {
         setError(response.error || 'Failed to add item');
@@ -102,6 +112,7 @@ export default function GroceryManager() {
 
   const filteredItems = items
     .filter(item => filter === 'all' ? true : item.location === filter)
+    .filter(item => categoryFilter ? (item.category || '') === categoryFilter : true)
     .filter(item => item.name.toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -163,6 +174,20 @@ export default function GroceryManager() {
               >
                 <option value="fridge">Fridge</option>
                 <option value="pantry">Pantry</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Category (optional)</label>
+              <select
+                value={form.category}
+                onChange={(e) => setForm({...form, category: e.target.value})}
+                className="royal-input"
+              >
+                <option value="">None</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.name}>{c.name}</option>
+                ))}
               </select>
             </div>
             
@@ -235,6 +260,71 @@ export default function GroceryManager() {
             </button>
           </div>
         </div>
+
+        <div className="filter-group">
+          <label>Filter by Category</label>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="royal-input"
+          >
+            <option value="">All Categories</option>
+            {categories.map(c => (
+              <option key={c.id} value={c.name}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/** Category management (admin could be enforced in future) */}
+      <div className="category-manager">
+        <h3>Categories</h3>
+        <div className="form-grid">
+          <div className="form-group">
+            <label>New Category</label>
+            <input
+              type="text"
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+              className="royal-input"
+              placeholder="e.g., Freezer, Produce, Snacks"
+            />
+          </div>
+          <button
+            className="royal-button primary"
+            onClick={async () => {
+              if (!newCategory.trim()) return;
+              const res = await apiService.createGroceryCategory(newCategory.trim());
+              if (res.data) {
+                setCategories([...categories, res.data.category]);
+                setNewCategory('');
+              }
+            }}
+            disabled={!newCategory.trim()}
+          >
+            Add Category
+          </button>
+        </div>
+        {categories.length > 0 && (
+          <div className="categories-list">
+            {categories.map(c => (
+              <div key={c.id} className="category-chip">
+                <span>{c.name}</span>
+                <button
+                  className="delete-btn"
+                  title="Delete category"
+                  onClick={async () => {
+                    if (!confirm(`Delete category "${c.name}"?`)) return;
+                    const res = await apiService.deleteGroceryCategory(c.id);
+                    if (!res.error) setCategories(categories.filter(x => x.id !== c.id));
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="items-list">

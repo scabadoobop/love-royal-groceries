@@ -132,6 +132,7 @@ class ApiService {
     location: 'fridge' | 'pantry';
     quantity: number;
     lowThreshold: number;
+    category?: string;
   }) {
     return this.request<{ item: any }>('/groceries', {
       method: 'POST',
@@ -151,6 +152,7 @@ class ApiService {
     location: 'fridge' | 'pantry';
     quantity: number;
     lowThreshold: number;
+    category?: string;
   }) {
     return this.request<{ item: any }>(`/groceries/${id}`, {
       method: 'PUT',
@@ -176,6 +178,22 @@ class ApiService {
     return this.request<{ items: any[] }>('/groceries/low-stock');
   }
 
+  // Grocery Categories
+  async listGroceryCategories() {
+    return this.request<{ categories: any[] }>('/grocery-categories');
+  }
+
+  async createGroceryCategory(name: string) {
+    return this.request<{ category: any }>('/grocery-categories', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+  }
+
+  async deleteGroceryCategory(id: string) {
+    return this.request(`/grocery-categories/${id}`, { method: 'DELETE' });
+  }
+
   // Notes
   async getNotes() {
     return this.request<{ notes: any[] }>('/notes');
@@ -192,6 +210,22 @@ class ApiService {
     return this.request(`/notes/${id}`, {
       method: 'DELETE',
     });
+  }
+
+  // Doodles
+  async listDoodles() {
+    return this.request<{ doodles: any[] }>('/doodles');
+  }
+
+  async createDoodle(imageData: string, noteType: 'personal' | 'family') {
+    return this.request<{ id: string; created_at: string }>('/doodles', {
+      method: 'POST',
+      body: JSON.stringify({ imageData, noteType }),
+    });
+  }
+
+  async deleteDoodle(id: string) {
+    return this.request(`/doodles/${id}`, { method: 'DELETE' });
   }
 
   // Household

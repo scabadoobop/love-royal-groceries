@@ -77,6 +77,18 @@ CREATE TABLE IF NOT EXISTS notes (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Doodles (handwritten/drawn notes)
+CREATE TABLE IF NOT EXISTS doodles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    household_id UUID REFERENCES households(id) NOT NULL,
+    author_id UUID REFERENCES users(id) NOT NULL,
+    image_data TEXT NOT NULL,
+    note_type VARCHAR(20) DEFAULT 'personal' CHECK (note_type IN ('personal', 'family')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_doodles_household ON doodles(household_id);
+
 -- Forum/Thread system for household discussions
 CREATE TABLE IF NOT EXISTS forum_categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

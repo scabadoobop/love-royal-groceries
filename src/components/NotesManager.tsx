@@ -10,12 +10,25 @@ interface Note {
   created_at: string;
 }
 
+interface Doodle {
+  id: string;
+  image_data: string;
+  note_type: 'personal' | 'family';
+  author_name: string;
+  created_at: string;
+}
+
 export default function NotesManager() {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [doodles, setDoodles] = useState<Doodle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [newNote, setNewNote] = useState('');
   const [noteType, setNoteType] = useState<'personal' | 'family'>('personal');
+  const [doodleType, setDoodleType] = useState<'personal' | 'family'>('personal');
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
+  let canvasRef: HTMLCanvasElement | null = null;
 
   useEffect(() => {
     loadNotes();
@@ -24,12 +37,16 @@ export default function NotesManager() {
   const loadNotes = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getNotes();
-      if (response.data) {
-        setNotes(response.data.notes);
+      const [notesRes, doodlesRes] = await Promise.all([
+        apiService.getNotes(),
+        apiService.listDoodles()
+      ]);
+      if (notesRes.data) {
+        setNotes(notesRes.data.notes);
       } else {
-        setError(response.error || 'Failed to load notes');
+        setError(notesRes.error || 'Failed to load notes');
       }
+      if (doodlesRes.data) setDoodles(doodlesRes.data.doodles);
     } catch (err) {
       setError('Failed to load notes');
     } finally {
@@ -66,6 +83,52 @@ export default function NotesManager() {
     } catch (err) {
       setError('Failed to delete note');
     }
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!ctx) return;
+    setIsDrawing(true);
+    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect();
+    ctx.beginPath();
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !ctx) return;
+    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect();
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => setIsDrawing(false);
+
+  const clearCanvas = () => {
+    if (!canvasRef || !ctx) return;
+    ctx.clearRect(0, 0, canvasRef.width, canvasRef.height);
+  };
+
+  const saveDoodle = async () => {
+    if (!canvasRef) return;
+    const dataUrl = canvasRef.toDataURL('image/png');
+    try {
+      const res = await apiService.createDoodle(dataUrl, doodleType);
+      if (res.data) {
+        // Reload doodles list
+        const list = await apiService.listDoodles();
+        if (list.data) setDoodles(list.data.doodles);
+        clearCanvas();
+      } else if (res.error) {
+        setError(res.error);
+      }
+    } catch (err) {
+      setError('Failed to save doodle');
+    }
+  };
+
+  const deleteDoodle = async (id: string) => {
+    if (!confirm('Delete this doodle?')) return;
+    const res = await apiService.deleteDoodle(id);
+    if (!res.error) setDoodles(doodles.filter(d => d.id !== id));
   };
 
   const personalNotes = notes.filter(note => note.note_type === 'personal');
@@ -129,6 +192,48 @@ export default function NotesManager() {
         </div>
       </div>
 
+      <div className="doodle-section">
+        <h3>Add Doodle</h3>
+        <div className="note-form">
+          <div className="form-group">
+            <label>Doodle Type</label>
+            <select
+              value={doodleType}
+              onChange={(e) => setDoodleType(e.target.value as 'personal' | 'family')}
+              className="royal-input"
+            >
+              <option value="personal">Personal</option>
+              <option value="family">Family (Everyone sees)</option>
+            </select>
+          </div>
+          <div className="doodle-pad">
+            <canvas
+              ref={(el) => {
+                canvasRef = el;
+                if (el && !ctx) {
+                  const c = el.getContext('2d');
+                  if (c) {
+                    c.lineWidth = 2;
+                    c.lineCap = 'round';
+                    setCtx(c);
+                  }
+                }
+              }}
+              width={600}
+              height={300}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseLeave={stopDrawing}
+            />
+          </div>
+          <div className="doodle-actions">
+            <button className="royal-button secondary" onClick={clearCanvas}>Clear</button>
+            <button className="royal-button primary" onClick={saveDoodle}>Save Doodle</button>
+          </div>
+        </div>
+      </div>
+
       <div className="notes-sections">
         <div className="notes-section">
           <h3>💭 Personal Notes</h3>
@@ -187,6 +292,27 @@ export default function NotesManager() {
                     >
                       ×
                     </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="notes-section">
+          <h3>✏️ Doodles</h3>
+          {doodles.length === 0 ? (
+            <div className="empty-notes">
+              <p>No doodles yet. Draw one above!</p>
+            </div>
+          ) : (
+            <div className="doodles-list">
+              {doodles.map(d => (
+                <div key={d.id} className={`doodle-card ${d.note_type}`}>
+                  <img src={d.image_data} alt="doodle" />
+                  <div className="note-meta">
+                    <span className="note-author">By {d.author_name}</span>
+                    <span className="note-date">{new Date(d.created_at).toLocaleString()}</span>
+                    <button className="delete-note-btn" onClick={() => deleteDoodle(d.id)} title="Delete doodle">×</button>
                   </div>
                 </div>
               ))}

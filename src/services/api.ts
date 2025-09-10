@@ -55,7 +55,7 @@ class ApiService {
     username: string;
     email: string;
     password: string;
-    householdKey: string;
+    householdKey?: string;
   }) {
     const response = await this.request<{
       token: string;

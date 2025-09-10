@@ -2,11 +2,6 @@ import { useState } from 'react';
 import { apiService } from '../services/api';
 import './LandingPage.css';
 
-interface Household {
-  id: string;
-  name: string;
-}
-
 interface User {
   id: string;
   username: string;
@@ -20,9 +15,7 @@ interface LandingPageProps {
 }
 
 export default function LandingPage({ onKeyValidated }: LandingPageProps) {
-  const [step, setStep] = useState<'key' | 'register' | 'login'>('key');
-  const [keyCode, setKeyCode] = useState('');
-  const [household, setHousehold] = useState<Household | null>(null);
+  const [step, setStep] = useState<'register' | 'login'>('register');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -40,29 +33,7 @@ export default function LandingPage({ onKeyValidated }: LandingPageProps) {
     password: ''
   });
 
-  const validateKey = async () => {
-    if (!keyCode.trim()) {
-      setError('Please enter a household key');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const { data, error } = await apiService.validateKey(keyCode.trim());
-      if (data?.valid) {
-        setHousehold(data.household);
-        setStep('register');
-      } else {
-        setError(error || 'Invalid household key');
-      }
-    } catch {
-      setError('Failed to validate key. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Household key validation removed; backend supports optional key on register
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +51,6 @@ export default function LandingPage({ onKeyValidated }: LandingPageProps) {
         username: regForm.username,
         email: regForm.email,
         password: regForm.password,
-        householdKey: keyCode,
       });
       if (data) {
         onKeyValidated(data.user);
@@ -145,49 +115,10 @@ export default function LandingPage({ onKeyValidated }: LandingPageProps) {
         </div>
 
         <div className="landing-card">
-          {step === 'key' && (
-            <div className="key-step">
-              <h2>Enter Household Key</h2>
-              <p>Get your household key from your family admin to join your household's grocery management system.</p>
-              
-              <div className="form-group">
-                <label htmlFor="keyCode">Household Key</label>
-                <input
-                  id="keyCode"
-                  type="text"
-                  value={keyCode}
-                  onChange={(e) => setKeyCode(e.target.value.toUpperCase())}
-                  placeholder="Enter your household key"
-                  className="royal-input"
-                />
-              </div>
-
-              {error && <div className="error-message">{error}</div>}
-
-              <button 
-                onClick={validateKey}
-                disabled={loading || !keyCode.trim()}
-                className="royal-button primary"
-              >
-                {loading ? 'Validating...' : 'Validate Key'}
-              </button>
-
-              <div className="auth-switch">
-                <p>Already have an account?</p>
-                <button 
-                  onClick={() => setStep('login')}
-                  className="link-button"
-                >
-                  Sign In
-                </button>
-              </div>
-            </div>
-          )}
-
-          {step === 'register' && household && (
+          {step === 'register' && (
             <div className="register-step">
-              <h2>Join {household.name}</h2>
-              <p>Create your account to access the household grocery system.</p>
+              <h2>Create your account</h2>
+              <p>Sign up to start using Royal Pantry & Fridge.</p>
 
               <form onSubmit={handleRegister}>
                 <div className="form-group">
@@ -317,12 +248,7 @@ export default function LandingPage({ onKeyValidated }: LandingPageProps) {
                 >
                   Forgot Password?
                 </button>
-                <button 
-                  onClick={() => setStep('key')}
-                  className="link-button"
-                >
-                  Need a household key?
-                </button>
+                
               </div>
             </div>
           )}

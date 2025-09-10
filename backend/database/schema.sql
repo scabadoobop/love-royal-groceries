@@ -97,15 +97,33 @@ CREATE TABLE IF NOT EXISTS forum_posts (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_users_household ON users(household_id);
-CREATE INDEX idx_grocery_items_household ON grocery_items(household_id);
-CREATE INDEX idx_notes_household ON notes(household_id);
-CREATE INDEX idx_forum_threads_household ON forum_threads(household_id);
-CREATE INDEX idx_forum_posts_thread ON forum_posts(thread_id);
+CREATE INDEX IF NOT EXISTS idx_users_household ON users(household_id);
+CREATE INDEX IF NOT EXISTS idx_grocery_items_household ON grocery_items(household_id);
+CREATE INDEX IF NOT EXISTS idx_notes_household ON notes(household_id);
+CREATE INDEX IF NOT EXISTS idx_forum_threads_household ON forum_threads(household_id);
+CREATE INDEX IF NOT EXISTS idx_forum_posts_thread ON forum_posts(thread_id);
 
 -- Insert default forum categories
-INSERT INTO forum_categories (household_id, name, description) VALUES 
-('00000000-0000-0000-0000-000000000000', 'Recipes', 'Share and discuss recipes with your household'),
-('00000000-0000-0000-0000-000000000000', 'Cleaning Tips', 'Household cleaning and maintenance tips'),
-('00000000-0000-0000-0000-000000000000', 'Storage Solutions', 'Organizing and storing groceries efficiently'),
-('00000000-0000-0000-0000-000000000000', 'General Discussion', 'General household discussions and announcements');
+INSERT INTO forum_categories (household_id, name, description)
+SELECT '00000000-0000-0000-0000-000000000000', 'Recipes', 'Share and discuss recipes with your household'
+WHERE NOT EXISTS (
+  SELECT 1 FROM forum_categories WHERE household_id = '00000000-0000-0000-0000-000000000000' AND name = 'Recipes'
+);
+
+INSERT INTO forum_categories (household_id, name, description)
+SELECT '00000000-0000-0000-0000-000000000000', 'Cleaning Tips', 'Household cleaning and maintenance tips'
+WHERE NOT EXISTS (
+  SELECT 1 FROM forum_categories WHERE household_id = '00000000-0000-0000-0000-000000000000' AND name = 'Cleaning Tips'
+);
+
+INSERT INTO forum_categories (household_id, name, description)
+SELECT '00000000-0000-0000-0000-000000000000', 'Storage Solutions', 'Organizing and storing groceries efficiently'
+WHERE NOT EXISTS (
+  SELECT 1 FROM forum_categories WHERE household_id = '00000000-0000-0000-0000-000000000000' AND name = 'Storage Solutions'
+);
+
+INSERT INTO forum_categories (household_id, name, description)
+SELECT '00000000-0000-0000-0000-000000000000', 'General Discussion', 'General household discussions and announcements'
+WHERE NOT EXISTS (
+  SELECT 1 FROM forum_categories WHERE household_id = '00000000-0000-0000-0000-000000000000' AND name = 'General Discussion'
+);

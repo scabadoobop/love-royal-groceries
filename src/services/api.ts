@@ -212,21 +212,7 @@ class ApiService {
     });
   }
 
-  // Doodles
-  async listDoodles() {
-    return this.request<{ doodles: any[] }>('/doodles');
-  }
-
-  async createDoodle(imageData: string, noteType: 'personal' | 'family') {
-    return this.request<{ id: string; created_at: string }>('/doodles', {
-      method: 'POST',
-      body: JSON.stringify({ imageData, noteType }),
-    });
-  }
-
-  async deleteDoodle(id: string) {
-    return this.request(`/doodles/${id}`, { method: 'DELETE' });
-  }
+  // Doodles removed
 
   // Household
   async getHouseholdInfo() {

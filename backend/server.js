@@ -10,7 +10,6 @@ const groceryRoutes = require('./routes/groceries');
 const notesRoutes = require('./routes/notes');
 const forumRoutes = require('./routes/forum');
 const groceryCategoryRoutes = require('./routes/groceryCategories');
-const doodleRoutes = require('./routes/doodles');
 const { initializeDatabase } = require('./database/connection');
 const { setupSocketIO } = require('./socket/socketHandler');
 
@@ -61,7 +60,6 @@ app.use('/api/groceries', groceryRoutes);
 app.use('/api/notes', notesRoutes);
 app.use('/api/forum', forumRoutes);
 app.use('/api/grocery-categories', groceryCategoryRoutes);
-app.use('/api/doodles', doodleRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

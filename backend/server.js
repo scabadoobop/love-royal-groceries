@@ -77,22 +77,26 @@ app.use('*', (req, res) => {
 
 // Initialize database and start server
 async function startServer() {
-  try {
-    await initializeDatabase();
-    console.log('✅ Database connected successfully');
-    
-    const server = app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📱 CORS enabled for: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
-    });
+  // Start server first (so health checks work)
+  const server = app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📱 CORS enabled for: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
+  });
 
-    // Setup Socket.IO for real-time features
-    setupSocketIO(server);
-    
-  } catch (error) {
-    console.error('❌ Failed to start server:', error);
-    process.exit(1);
-  }
+  // Setup Socket.IO for real-time features
+  setupSocketIO(server);
+  
+  // Initialize database in background (non-blocking)
+  initializeDatabase()
+    .then(() => {
+      console.log('✅ Database connected successfully');
+    })
+    .catch((error) => {
+      console.error('❌ Database initialization failed:', error);
+      console.error('⚠️  Server is running but database is not connected');
+      // Don't exit - let the server run so health checks work
+      // The database connection will be retried on first use
+    });
 }
 
 startServer();

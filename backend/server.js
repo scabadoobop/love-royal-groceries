@@ -48,9 +48,22 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Health check endpoint
+// Health check endpoint (must be early and simple)
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// Root endpoint for Railway health checks
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK',
+    service: 'royal-groceries-backend',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // API routes
@@ -77,26 +90,56 @@ app.use('*', (req, res) => {
 
 // Initialize database and start server
 async function startServer() {
-  // Start server first (so health checks work)
-  const server = app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📱 CORS enabled for: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
-  });
-
-  // Setup Socket.IO for real-time features
-  setupSocketIO(server);
-  
-  // Initialize database in background (non-blocking)
-  initializeDatabase()
-    .then(() => {
-      console.log('✅ Database connected successfully');
-    })
-    .catch((error) => {
-      console.error('❌ Database initialization failed:', error);
-      console.error('⚠️  Server is running but database is not connected');
-      // Don't exit - let the server run so health checks work
-      // The database connection will be retried on first use
+  try {
+    // Start server first (so health checks work immediately)
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📱 CORS enabled for: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
+      console.log(`✅ Health check available at /health`);
     });
+
+    // Handle server errors
+    server.on('error', (error) => {
+      console.error('❌ Server error:', error);
+      if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use`);
+      }
+    });
+
+    // Setup Socket.IO for real-time features
+    try {
+      setupSocketIO(server);
+      console.log('✅ Socket.IO initialized');
+    } catch (socketError) {
+      console.error('⚠️  Socket.IO setup failed (non-critical):', socketError.message);
+      // Don't crash if Socket.IO fails
+    }
+    
+    // Initialize database in background (non-blocking)
+    initializeDatabase()
+      .then(() => {
+        console.log('✅ Database connected successfully');
+      })
+      .catch((error) => {
+        console.error('❌ Database initialization failed:', error.message);
+        console.error('⚠️  Server is running but database is not connected');
+        // Don't exit - let the server run so health checks work
+      });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
 }
+
+// Handle uncaught errors gracefully
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  // Don't exit - let health checks still work
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit - let health checks still work
+});
 
 startServer();

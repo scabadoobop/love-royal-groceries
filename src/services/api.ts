@@ -283,6 +283,80 @@ class ApiService {
     });
   }
 
+  // Quests
+  async getQuests() {
+    return this.request<{ quests: any[] }>('/quests');
+  }
+
+  async getMyQuestProgress() {
+    return this.request<{ totalPoints: number; pointsSpent: number; availablePoints: number; todayCompletions: any[] }>('/quests/my-progress');
+  }
+
+  async getQuestLeaderboard() {
+    return this.request<{ leaderboard: any[] }>('/quests/leaderboard');
+  }
+
+  async createQuest(title: string, description: string, points: number) {
+    return this.request<{ quest: any }>('/quests', {
+      method: 'POST',
+      body: JSON.stringify({ title, description, points }),
+    });
+  }
+
+  async updateQuest(questId: string, data: { title?: string; description?: string; points?: number; is_active?: boolean }) {
+    return this.request<{ quest: any }>(`/quests/${questId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteQuest(questId: string) {
+    return this.request(`/quests/${questId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async completeQuest(questId: string) {
+    return this.request<{ completion: any; pointsEarned: number }>(`/quests/${questId}/complete`, {
+      method: 'POST',
+    });
+  }
+
+  // Rewards
+  async getRewards() {
+    return this.request<{ rewards: any[] }>('/rewards');
+  }
+
+  async getMyRedemptions() {
+    return this.request<{ redemptions: any[] }>('/rewards/my-redemptions');
+  }
+
+  async createReward(name: string, description: string, points_cost: number, stock_quantity?: number) {
+    return this.request<{ reward: any }>('/rewards', {
+      method: 'POST',
+      body: JSON.stringify({ name, description, points_cost, stock_quantity }),
+    });
+  }
+
+  async updateReward(rewardId: string, data: { name?: string; description?: string; points_cost?: number; stock_quantity?: number; is_available?: boolean }) {
+    return this.request<{ reward: any }>(`/rewards/${rewardId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteReward(rewardId: string) {
+    return this.request(`/rewards/${rewardId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async redeemReward(rewardId: string) {
+    return this.request<{ redemption: any; remainingPoints: number }>(`/rewards/${rewardId}/redeem`, {
+      method: 'POST',
+    });
+  }
+
   // Utility methods
   setToken(token: string) {
     this.token = token;

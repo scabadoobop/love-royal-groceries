@@ -13,7 +13,7 @@ require('dotenv').config();
 console.log('✅ Express and dependencies loaded');
 
 // Load routes with error handling (don't crash if routes fail)
-let authRoutes, householdRoutes, groceryRoutes, notesRoutes, forumRoutes, groceryCategoryRoutes;
+let authRoutes, householdRoutes, groceryRoutes, notesRoutes, forumRoutes, groceryCategoryRoutes, questRoutes, rewardRoutes;
 try {
   authRoutes = require('./routes/auth');
   householdRoutes = require('./routes/households');
@@ -21,6 +21,8 @@ try {
   notesRoutes = require('./routes/notes');
   forumRoutes = require('./routes/forum');
   groceryCategoryRoutes = require('./routes/groceryCategories');
+  questRoutes = require('./routes/quests');
+  rewardRoutes = require('./routes/rewards');
   console.log('✅ All route modules loaded successfully');
 } catch (routeLoadError) {
   console.error('❌ Error loading route modules:', routeLoadError);
@@ -32,6 +34,8 @@ try {
   notesRoutes = express.Router();
   forumRoutes = express.Router();
   groceryCategoryRoutes = express.Router();
+  questRoutes = express.Router();
+  rewardRoutes = express.Router();
 }
 
 const { initializeDatabase } = require('./database/connection');
@@ -98,6 +102,8 @@ try {
   app.use('/api/notes', notesRoutes);
   app.use('/api/forum', forumRoutes);
   app.use('/api/grocery-categories', groceryCategoryRoutes);
+  app.use('/api/quests', questRoutes);
+  app.use('/api/rewards', rewardRoutes);
   console.log('✅ All API routes loaded successfully');
 } catch (routeError) {
   console.error('⚠️  Error loading routes (non-critical):', routeError.message);

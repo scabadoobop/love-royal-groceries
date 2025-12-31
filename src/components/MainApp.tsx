@@ -4,6 +4,7 @@ import GroceryManager from './GroceryManager';
 import NotesManager from './NotesManager';
 import ForumManager from './ForumManager';
 import HouseholdManager from './HouseholdManager';
+import QuestManager from './QuestManager';
 import './MainApp.css';
 
 interface User {
@@ -20,7 +21,7 @@ interface MainAppProps {
 }
 
 export default function MainApp({ user, onLogout }: MainAppProps) {
-  const [activeTab, setActiveTab] = useState<'groceries' | 'notes' | 'forum' | 'household'>('groceries');
+  const [activeTab, setActiveTab] = useState<'groceries' | 'notes' | 'forum' | 'household' | 'quests'>('groceries');
   const [householdInfo, setHouseholdInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -112,6 +113,12 @@ export default function MainApp({ user, onLogout }: MainAppProps) {
         >
           👥 Household
         </button>
+        <button 
+          className={`nav-button ${activeTab === 'quests' ? 'active' : ''}`}
+          onClick={() => setActiveTab('quests')}
+        >
+          ⚔️ Quests
+        </button>
       </nav>
 
       <main className="app-main">
@@ -119,6 +126,7 @@ export default function MainApp({ user, onLogout }: MainAppProps) {
         {activeTab === 'notes' && <NotesManager />}
         {activeTab === 'forum' && <ForumManager userRole={user.role} />}
         {activeTab === 'household' && <HouseholdManager user={user} onLogout={onLogout} />}
+        {activeTab === 'quests' && <QuestManager userRole={user.role} />}
       </main>
     </div>
   );

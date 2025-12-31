@@ -1,8 +1,16 @@
+// Log immediately to verify script is running
+console.log('📦 Starting server.js...');
+console.log('📦 Node version:', process.version);
+console.log('📦 NODE_ENV:', process.env.NODE_ENV || 'not set');
+console.log('📦 PORT:', process.env.PORT || 'not set (will use 3001)');
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
+
+console.log('✅ Express and dependencies loaded');
 
 // Load routes with error handling (don't crash if routes fail)
 let authRoutes, householdRoutes, groceryRoutes, notesRoutes, forumRoutes, groceryCategoryRoutes;
@@ -112,19 +120,24 @@ app.use('*', (req, res) => {
 
 // Initialize database and start server
 function startServer() {
+  console.log(`📦 startServer() called`);
+  console.log(`📦 PORT value: ${PORT}`);
+  
   try {
-    console.log(`📦 Starting server on port ${PORT}...`);
+    console.log(`📦 Attempting to start server on port ${PORT}...`);
     console.log(`🌐 Binding to 0.0.0.0:${PORT} for Railway...`);
     
     // Start server FIRST (before loading routes) so health checks work immediately
     const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`✅ Server successfully started!`);
+      console.log(`✅✅✅ SERVER SUCCESSFULLY STARTED! ✅✅✅`);
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📱 CORS enabled for: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
       console.log(`✅ Health check available at /health and /`);
       console.log(`🌐 Server bound to 0.0.0.0:${PORT}`);
       console.log(`🔍 Railway can now check health endpoint`);
     });
+    
+    console.log(`📦 app.listen() called, waiting for callback...`);
 
     // Handle server errors
     server.on('error', (error) => {
@@ -170,13 +183,19 @@ function startServer() {
 
 // Handle uncaught errors gracefully
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
+  console.error('❌❌❌ UNCAUGHT EXCEPTION ❌❌❌');
+  console.error('❌ Error:', error);
+  console.error('❌ Stack:', error.stack);
   // Don't exit - let health checks still work
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  console.error('❌❌❌ UNHANDLED REJECTION ❌❌❌');
+  console.error('❌ Reason:', reason);
+  console.error('❌ Promise:', promise);
   // Don't exit - let health checks still work
 });
 
+console.log('📦 About to call startServer()...');
 startServer();
+console.log('📦 startServer() call completed');

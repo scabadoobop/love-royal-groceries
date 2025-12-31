@@ -16,6 +16,24 @@ const { setupSocketIO } = require('./socket/socketHandler');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Health check endpoints - MUST BE FIRST (before any middleware)
+// This ensures Railway can check health even if routes fail to load
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK',
+    service: 'royal-groceries-backend',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
@@ -48,31 +66,19 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Health check endpoint (must be early and simple)
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
-});
-
-// Root endpoint for Railway health checks
-app.get('/', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK',
-    service: 'royal-groceries-backend',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/households', householdRoutes);
-app.use('/api/groceries', groceryRoutes);
-app.use('/api/notes', notesRoutes);
-app.use('/api/forum', forumRoutes);
-app.use('/api/grocery-categories', groceryCategoryRoutes);
+// API routes (wrapped in try-catch to prevent startup crashes)
+try {
+  app.use('/api/auth', authRoutes);
+  app.use('/api/households', householdRoutes);
+  app.use('/api/groceries', groceryRoutes);
+  app.use('/api/notes', notesRoutes);
+  app.use('/api/forum', forumRoutes);
+  app.use('/api/grocery-categories', groceryCategoryRoutes);
+  console.log('✅ All API routes loaded successfully');
+} catch (routeError) {
+  console.error('⚠️  Error loading routes (non-critical):', routeError.message);
+  // Don't crash - health check will still work
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -91,11 +97,12 @@ app.use('*', (req, res) => {
 // Initialize database and start server
 async function startServer() {
   try {
-    // Start server first (so health checks work immediately)
+    // Start server FIRST (before loading routes) so health checks work immediately
     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📱 CORS enabled for: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
-      console.log(`✅ Health check available at /health`);
+      console.log(`✅ Health check available at /health and /`);
+      console.log(`🌐 Server bound to 0.0.0.0:${PORT}`);
     });
 
     // Handle server errors

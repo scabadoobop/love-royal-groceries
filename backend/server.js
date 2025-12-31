@@ -4,12 +4,28 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
-const authRoutes = require('./routes/auth');
-const householdRoutes = require('./routes/households');
-const groceryRoutes = require('./routes/groceries');
-const notesRoutes = require('./routes/notes');
-const forumRoutes = require('./routes/forum');
-const groceryCategoryRoutes = require('./routes/groceryCategories');
+// Load routes with error handling (don't crash if routes fail)
+let authRoutes, householdRoutes, groceryRoutes, notesRoutes, forumRoutes, groceryCategoryRoutes;
+try {
+  authRoutes = require('./routes/auth');
+  householdRoutes = require('./routes/households');
+  groceryRoutes = require('./routes/groceries');
+  notesRoutes = require('./routes/notes');
+  forumRoutes = require('./routes/forum');
+  groceryCategoryRoutes = require('./routes/groceryCategories');
+  console.log('✅ All route modules loaded successfully');
+} catch (routeLoadError) {
+  console.error('❌ Error loading route modules:', routeLoadError);
+  console.error('⚠️  Server will start but API routes may not work');
+  // Create empty routers as fallback
+  authRoutes = express.Router();
+  householdRoutes = express.Router();
+  groceryRoutes = express.Router();
+  notesRoutes = express.Router();
+  forumRoutes = express.Router();
+  groceryCategoryRoutes = express.Router();
+}
+
 const { initializeDatabase } = require('./database/connection');
 const { setupSocketIO } = require('./socket/socketHandler');
 
@@ -95,22 +111,36 @@ app.use('*', (req, res) => {
 });
 
 // Initialize database and start server
-async function startServer() {
+function startServer() {
   try {
+    console.log(`📦 Starting server on port ${PORT}...`);
+    console.log(`🌐 Binding to 0.0.0.0:${PORT} for Railway...`);
+    
     // Start server FIRST (before loading routes) so health checks work immediately
     const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`✅ Server successfully started!`);
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📱 CORS enabled for: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
       console.log(`✅ Health check available at /health and /`);
       console.log(`🌐 Server bound to 0.0.0.0:${PORT}`);
+      console.log(`🔍 Railway can now check health endpoint`);
     });
 
     // Handle server errors
     server.on('error', (error) => {
       console.error('❌ Server error:', error);
+      console.error('❌ Error code:', error.code);
+      console.error('❌ Error message:', error.message);
       if (error.code === 'EADDRINUSE') {
         console.error(`Port ${PORT} is already in use`);
       }
+      // Don't exit - let Railway see the error in logs
+    });
+
+    // Log when server is actually listening
+    server.on('listening', () => {
+      const addr = server.address();
+      console.log(`✅ Server is listening on ${addr.address}:${addr.port}`);
     });
 
     // Setup Socket.IO for real-time features

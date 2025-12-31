@@ -258,10 +258,17 @@ class ApiService {
     return this.request<{ threads: any[] }>(`/forum/categories/${categoryId}/threads?page=${page}&limit=${limit}`);
   }
 
-  async createThread(categoryId: string, title: string, content: string) {
+  async createThread(categoryId: string, title: string, content: string, expiresAt?: string) {
     return this.request<{ thread: any }>('/forum/threads', {
       method: 'POST',
-      body: JSON.stringify({ categoryId, title, content }),
+      body: JSON.stringify({ categoryId, title, content, expiresAt }),
+    });
+  }
+
+  async pinThread(threadId: string, isPinned: boolean) {
+    return this.request<{ thread: any }>(`/forum/threads/${threadId}/pin`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isPinned }),
     });
   }
 

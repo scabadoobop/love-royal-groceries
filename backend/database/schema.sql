@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS forum_threads (
     content TEXT NOT NULL,
     is_pinned BOOLEAN DEFAULT false,
     is_locked BOOLEAN DEFAULT false,
+    expires_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

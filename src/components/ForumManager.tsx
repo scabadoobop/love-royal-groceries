@@ -18,6 +18,7 @@ interface Thread {
   post_count: number;
   last_post_at: string;
   is_pinned: boolean;
+  expires_at?: string;
 }
 
 interface Post {
@@ -27,7 +28,11 @@ interface Post {
   created_at: string;
 }
 
-export default function ForumManager() {
+interface ForumManagerProps {
+  userRole?: string;
+}
+
+export default function ForumManager({ userRole = 'member' }: ForumManagerProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [threads, setThreads] = useState<Thread[]>([]);
@@ -36,8 +41,14 @@ export default function ForumManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showNewThread, setShowNewThread] = useState(false);
-  const [newThread, setNewThread] = useState({ title: '', content: '' });
+  const [newThread, setNewThread] = useState({ 
+    title: '', 
+    content: '', 
+    expiresAt: '',
+    hasExpiration: false 
+  });
   const [newPost, setNewPost] = useState('');
+  const isAdmin = userRole === 'admin';
 
   useEffect(() => {
     loadCategories();
@@ -95,13 +106,18 @@ export default function ForumManager() {
     if (!selectedCategory || !newThread.title.trim() || !newThread.content.trim()) return;
 
     try {
+      const expiresAt = newThread.hasExpiration && newThread.expiresAt 
+        ? new Date(newThread.expiresAt).toISOString() 
+        : undefined;
+      
       const response = await apiService.createThread(
         selectedCategory.id,
         newThread.title.trim(),
-        newThread.content.trim()
+        newThread.content.trim(),
+        expiresAt
       );
       if (response.data) {
-        setNewThread({ title: '', content: '' });
+        setNewThread({ title: '', content: '', expiresAt: '', hasExpiration: false });
         setShowNewThread(false);
         loadThreads(selectedCategory.id);
       } else {
@@ -109,6 +125,19 @@ export default function ForumManager() {
       }
     } catch (err) {
       setError('Failed to create thread');
+    }
+  };
+
+  const togglePin = async (threadId: string, currentPinStatus: boolean) => {
+    try {
+      const response = await apiService.pinThread(threadId, !currentPinStatus);
+      if (response.data) {
+        loadThreads(selectedCategory!.id);
+      } else {
+        setError(response.error || 'Failed to pin/unpin thread');
+      }
+    } catch (err) {
+      setError('Failed to pin/unpin thread');
     }
   };
 
@@ -232,6 +261,25 @@ export default function ForumManager() {
                   rows={4}
                 />
               </div>
+              <div className="form-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={newThread.hasExpiration}
+                    onChange={(e) => setNewThread({...newThread, hasExpiration: e.target.checked})}
+                  />
+                  Set expiration date (optional)
+                </label>
+                {newThread.hasExpiration && (
+                  <input
+                    type="datetime-local"
+                    value={newThread.expiresAt}
+                    onChange={(e) => setNewThread({...newThread, expiresAt: e.target.value})}
+                    className="royal-input"
+                    min={new Date().toISOString().slice(0, 16)}
+                  />
+                )}
+              </div>
               <div className="form-actions">
                 <button 
                   className="royal-button primary"
@@ -242,7 +290,10 @@ export default function ForumManager() {
                 </button>
                 <button 
                   className="royal-button secondary"
-                  onClick={() => setShowNewThread(false)}
+                  onClick={() => {
+                    setNewThread({ title: '', content: '', expiresAt: '', hasExpiration: false });
+                    setShowNewThread(false);
+                  }}
                 >
                   Cancel
                 </button>
@@ -256,23 +307,48 @@ export default function ForumManager() {
                 <p>No threads yet. Be the first to start a discussion!</p>
               </div>
             ) : (
-              threads.map(thread => (
-                <div 
-                  key={thread.id} 
-                  className={`thread-card ${thread.is_pinned ? 'pinned' : ''}`}
-                  onClick={() => handleThreadSelect(thread)}
-                >
-                  <div className="thread-content">
-                    <h4>{thread.title}</h4>
-                    <div className="thread-meta">
-                      <span>By {thread.author_name}</span>
-                      <span>{thread.post_count} posts</span>
-                      <span>{new Date(thread.created_at).toLocaleDateString()}</span>
+              threads.map(thread => {
+                const isExpired = thread.expires_at && new Date(thread.expires_at) < new Date();
+                return (
+                  <div 
+                    key={thread.id} 
+                    className={`thread-card ${thread.is_pinned ? 'pinned' : ''} ${isExpired ? 'expired' : ''}`}
+                  >
+                    <div 
+                      className="thread-content"
+                      onClick={() => handleThreadSelect(thread)}
+                    >
+                      <div className="thread-header">
+                        <h4>{thread.title}</h4>
+                        {thread.is_pinned && <span className="pinned-badge">📌 Pinned</span>}
+                        {isExpired && <span className="expired-badge">⏰ Expired</span>}
+                      </div>
+                      <div className="thread-meta">
+                        <span>By {thread.author_name}</span>
+                        <span>{thread.post_count} posts</span>
+                        <span>{new Date(thread.created_at).toLocaleDateString()}</span>
+                        {thread.expires_at && (
+                          <span className="expires-at">
+                            Expires: {new Date(thread.expires_at).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                    {isAdmin && (
+                      <button
+                        className="pin-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePin(thread.id, thread.is_pinned);
+                        }}
+                        title={thread.is_pinned ? 'Unpin thread' : 'Pin thread'}
+                      >
+                        {thread.is_pinned ? '📌 Unpin' : '📌 Pin'}
+                      </button>
+                    )}
                   </div>
-                  {thread.is_pinned && <span className="pinned-badge">📌</span>}
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

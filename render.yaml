@@ -1,0 +1,53 @@
+services:
+  - type: web
+    name: royal-groceries-backend
+    env: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CORS_ORIGIN
+        value: https://scabadoobop.github.io
+      - key: JWT_SECRET
+        generateValue: true
+      - key: BCRYPT_ROUNDS
+        value: "12"
+      - key: RATE_LIMIT_WINDOW_MS
+        value: "900000"
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: "100"
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_FROM
+        value: "Royal Groceries <noreply@royalgroceries.com>"
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: royal-groceries-redis
+          property: connectionString
+      - key: DATABASE_URL
+        fromDatabase:
+          name: royal-groceries-db
+          property: connectionString
+    headers:
+      - path: /.*/
+        name: Access-Control-Allow-Origin
+        value: https://scabadoobop.github.io
+      - path: /.*/
+        name: Access-Control-Allow-Credentials
+        value: "true"
+databases:
+  - name: royal-groceries-db
+    plan: free
+redis:
+  - name: royal-groceries-redis
+    plan: free

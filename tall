@@ -1,0 +1,5 @@
+[33m46fb9d1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m Fix GitHub Actions workflow to trigger on master branch
+[33me3c7828[m[33m ([m[1;32mgh-pages[m[33m)[m Add secure multi-tenant system with GitHub Pages deployment
+[33m6d8206a[m[33m ([m[1;31morigin/gh-pages[m[33m)[m Add labels to form fields for better clarity
+[33m79ccce8[m Deploy to GitHub Pages
+[33m467545b[m Add invite code system for friends with isolated data access

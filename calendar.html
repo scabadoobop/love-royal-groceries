@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar - Creator & Talent Hub</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>Creator & Talent Hub</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="shows.html">Shows</a></li>
+                <li><a href="talent.html">Talent Portal</a></li>
+                <li><a href="calendar.html" class="active">Calendar</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+            <button class="nav-toggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h1>Show Calendar</h1>
+                <p>Browse shows by date</p>
+            </div>
+        </section>
+
+        <section class="calendar-section">
+            <div class="container">
+                <div class="calendar-controls">
+                    <button id="prevMonth" class="btn btn-secondary">← Previous</button>
+                    <h2 id="currentMonth"></h2>
+                    <button id="nextMonth" class="btn btn-secondary">Next →</button>
+                </div>
+                <div class="calendar-container" id="calendarContainer">
+                    <!-- Dynamically populated -->
+                </div>
+                <div class="calendar-shows" id="calendarShows">
+                    <h3>Shows on Selected Date</h3>
+                    <div id="selectedDateShows">
+                        <p>Click on a date to view shows</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Creator & Talent Hub</h3>
+                    <p>Connecting creators with amazing talent since 2024.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Follow Us</h4>
+                    <div class="social-icons">
+                        <a href="#" aria-label="YouTube" class="social-icon youtube">YouTube</a>
+                        <a href="#" aria-label="Twitter" class="social-icon twitter">Twitter</a>
+                        <a href="#" aria-label="Instagram" class="social-icon instagram">Instagram</a>
+                        <a href="#" aria-label="TikTok" class="social-icon tiktok">TikTok</a>
+                        <a href="#" aria-label="Twitch" class="social-icon twitch">Twitch</a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="shows.html">Shows</a></li>
+                        <li><a href="talent.html">Talent Portal</a></li>
+                        <li><a href="calendar.html">Calendar</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Creator & Talent Hub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Initialize calendar
+        document.addEventListener('DOMContentLoaded', () => {
+            let currentDate = new Date();
+            renderCalendar(currentDate);
+            
+            document.getElementById('prevMonth').addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                renderCalendar(currentDate);
+            });
+            
+            document.getElementById('nextMonth').addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                renderCalendar(currentDate);
+            });
+        });
+    </script>
+</body>
+</html>
+

@@ -474,3 +474,5 @@ export default function RewardsShop({ userRole = 'member', availablePoints, onRe
   );
 }
 
+
+

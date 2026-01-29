@@ -116,6 +116,8 @@ CREATE TABLE IF NOT EXISTS quests (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     points INTEGER NOT NULL DEFAULT 10 CHECK (points > 0),
+    frequency VARCHAR(20) DEFAULT 'daily' CHECK (frequency IN ('daily', 'weekly', 'monthly')),
+    assigned_to UUID REFERENCES users(id),
     is_active BOOLEAN DEFAULT true,
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -127,8 +129,20 @@ CREATE TABLE IF NOT EXISTS quest_completions (
     quest_id UUID REFERENCES quests(id) NOT NULL,
     user_id UUID REFERENCES users(id) NOT NULL,
     completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    points_awarded INTEGER,
     verified_by UUID REFERENCES users(id),
     UNIQUE(quest_id, user_id, DATE(completed_at))
+);
+
+-- Member points tracking
+CREATE TABLE IF NOT EXISTS member_points (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) NOT NULL,
+    household_id UUID REFERENCES households(id) NOT NULL,
+    points_balance INTEGER DEFAULT 0 NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, household_id)
 );
 
 CREATE TABLE IF NOT EXISTS rewards (
@@ -161,6 +175,8 @@ CREATE INDEX IF NOT EXISTS idx_forum_threads_household ON forum_threads(househol
 CREATE INDEX IF NOT EXISTS idx_forum_posts_thread ON forum_posts(thread_id);
 CREATE INDEX IF NOT EXISTS idx_quests_household ON quests(household_id);
 CREATE INDEX IF NOT EXISTS idx_quest_completions_user ON quest_completions(user_id);
+CREATE INDEX IF NOT EXISTS idx_member_points_user ON member_points(user_id);
+CREATE INDEX IF NOT EXISTS idx_member_points_household ON member_points(household_id);
 CREATE INDEX IF NOT EXISTS idx_rewards_household ON rewards(household_id);
 CREATE INDEX IF NOT EXISTS idx_redemptions_user ON point_redemptions(user_id);
 

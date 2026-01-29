@@ -13,12 +13,14 @@ router.get('/', async (req, res) => {
     const result = await query(
       `SELECT q.*, 
               u.username as created_by_name,
+              assigned_user.username as assigned_to_name,
               COUNT(qc.id) as completion_count
        FROM quests q
        LEFT JOIN users u ON q.created_by = u.id
+       LEFT JOIN users assigned_user ON q.assigned_to = assigned_user.id
        LEFT JOIN quest_completions qc ON q.id = qc.quest_id
        WHERE q.household_id = $1
-       GROUP BY q.id, u.username
+       GROUP BY q.id, u.username, assigned_user.username
        ORDER BY q.is_active DESC, q.created_at DESC`,
       [req.user.household_id]
     );
@@ -30,29 +32,48 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get user's quest progress and points
-router.get('/my-progress', async (req, res) => {
+// Get user's points balance
+router.get('/points', async (req, res) => {
   try {
-    // Get user's total points from completed quests
-    const pointsResult = await query(
-      `SELECT COALESCE(SUM(q.points), 0) as total_points
-       FROM quest_completions qc
-       JOIN quests q ON qc.quest_id = q.id
-       WHERE qc.user_id = $1 AND q.household_id = $2`,
+    const result = await query(
+      `SELECT points_balance 
+       FROM member_points 
+       WHERE user_id = $1 AND household_id = $2`,
       [req.user.id, req.user.household_id]
     );
 
-    // Get points spent on redemptions
-    const spentResult = await query(
-      `SELECT COALESCE(SUM(points_spent), 0) as points_spent
-       FROM point_redemptions
-       WHERE user_id = $1 AND status != 'cancelled'`,
-      [req.user.id]
+    if (result.rows.length === 0) {
+      // Initialize if doesn't exist
+      await query(
+        `INSERT INTO member_points (user_id, household_id, points_balance)
+         VALUES ($1, $2, 0)
+         ON CONFLICT (user_id, household_id) DO NOTHING`,
+        [req.user.id, req.user.household_id]
+      );
+      return res.json({ pointsBalance: 0 });
+    }
+
+    res.json({ pointsBalance: result.rows[0].points_balance || 0 });
+  } catch (error) {
+    console.error('Get points error:', error);
+    res.status(500).json({ error: 'Server error fetching points' });
+  }
+});
+
+// Get user's quest progress and points
+router.get('/my-progress', async (req, res) => {
+  try {
+    // Get user's points balance
+    const pointsResult = await query(
+      `SELECT points_balance 
+       FROM member_points 
+       WHERE user_id = $1 AND household_id = $2`,
+      [req.user.id, req.user.household_id]
     );
 
     // Get user's completed quests today
     const todayCompletions = await query(
-      `SELECT qc.quest_id, q.title, q.points, qc.completed_at
+      `SELECT qc.quest_id, q.title, qc.points_awarded as points, qc.completed_at
        FROM quest_completions qc
        JOIN quests q ON qc.quest_id = q.id
        WHERE qc.user_id = $1 
@@ -62,14 +83,10 @@ router.get('/my-progress', async (req, res) => {
       [req.user.id, req.user.household_id]
     );
 
-    const totalPoints = parseInt(pointsResult.rows[0].total_points) || 0;
-    const pointsSpent = parseInt(spentResult.rows[0].points_spent) || 0;
-    const availablePoints = totalPoints - pointsSpent;
+    const pointsBalance = pointsResult.rows.length > 0 ? (pointsResult.rows[0].points_balance || 0) : 0;
 
     res.json({
-      totalPoints,
-      pointsSpent,
-      availablePoints,
+      pointsBalance,
       todayCompletions: todayCompletions.rows
     });
   } catch (error) {
@@ -83,13 +100,14 @@ router.get('/leaderboard', async (req, res) => {
   try {
     const result = await query(
       `SELECT u.id, u.username,
-              COALESCE(SUM(q.points), 0) as total_points,
+              COALESCE(mp.points_balance, 0) as total_points,
               COUNT(DISTINCT qc.id) as quests_completed
        FROM users u
+       LEFT JOIN member_points mp ON u.id = mp.user_id AND u.household_id = mp.household_id
        LEFT JOIN quest_completions qc ON u.id = qc.user_id
        LEFT JOIN quests q ON qc.quest_id = q.id AND q.household_id = $1
        WHERE u.household_id = $1 AND u.is_active = true
-       GROUP BY u.id, u.username
+       GROUP BY u.id, u.username, mp.points_balance
        ORDER BY total_points DESC, quests_completed DESC`,
       [req.user.household_id]
     );
@@ -106,7 +124,9 @@ router.post('/', [
   requireAdmin,
   body('title').trim().isLength({ min: 1, max: 255 }).withMessage('Title required (1-255 characters)'),
   body('description').optional().trim().isLength({ max: 1000 }),
-  body('points').isInt({ min: 1, max: 1000 }).withMessage('Points must be between 1 and 1000')
+  body('pointsReward').isInt({ min: 1, max: 1000 }).withMessage('Points must be between 1 and 1000'),
+  body('frequency').optional().isIn(['daily', 'weekly', 'monthly']).withMessage('Frequency must be daily, weekly, or monthly'),
+  body('assignedTo').optional().isUUID().withMessage('assignedTo must be a valid user ID or null for all')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -114,13 +134,32 @@ router.post('/', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { title, description, points } = req.body;
+    const { title, description, pointsReward, frequency, assignedTo } = req.body;
+
+    // Validate assignedTo belongs to household if provided
+    if (assignedTo) {
+      const userCheck = await query(
+        'SELECT id FROM users WHERE id = $1 AND household_id = $2',
+        [assignedTo, req.user.household_id]
+      );
+      if (userCheck.rows.length === 0) {
+        return res.status(400).json({ error: 'assignedTo user must belong to the same household' });
+      }
+    }
 
     const result = await query(
-      `INSERT INTO quests (household_id, title, description, points, created_by)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO quests (household_id, title, description, points, frequency, assigned_to, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [req.user.household_id, title, description || null, points || 10, req.user.id]
+      [
+        req.user.household_id, 
+        title, 
+        description || null, 
+        pointsReward || 10, 
+        frequency || 'daily',
+        assignedTo || null,
+        req.user.id
+      ]
     );
 
     res.status(201).json({ quest: result.rows[0] });
@@ -135,7 +174,14 @@ router.put('/:id', [
   requireAdmin,
   body('title').optional().trim().isLength({ min: 1, max: 255 }),
   body('description').optional().trim().isLength({ max: 1000 }),
-  body('points').optional().isInt({ min: 1, max: 1000 }),
+  body('pointsReward').optional().isInt({ min: 1, max: 1000 }),
+  body('frequency').optional().isIn(['daily', 'weekly', 'monthly']),
+  body('assignedTo').optional().custom((value) => {
+    if (value === null || value === '') return true;
+    // Basic UUID format check
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(value);
+  }).withMessage('assignedTo must be a valid user ID or null'),
   body('is_active').optional().isBoolean()
 ], async (req, res) => {
   try {
@@ -145,7 +191,18 @@ router.put('/:id', [
     }
 
     const { id } = req.params;
-    const { title, description, points, is_active } = req.body;
+    const { title, description, pointsReward, frequency, assignedTo, is_active } = req.body;
+
+    // Validate assignedTo belongs to household if provided
+    if (assignedTo !== null && assignedTo !== undefined && assignedTo !== '') {
+      const userCheck = await query(
+        'SELECT id FROM users WHERE id = $1 AND household_id = $2',
+        [assignedTo, req.user.household_id]
+      );
+      if (userCheck.rows.length === 0) {
+        return res.status(400).json({ error: 'assignedTo user must belong to the same household' });
+      }
+    }
 
     // Build dynamic update query
     const updates = [];
@@ -160,9 +217,17 @@ router.put('/:id', [
       updates.push(`description = $${paramCount++}`);
       values.push(description);
     }
-    if (points !== undefined) {
+    if (pointsReward !== undefined) {
       updates.push(`points = $${paramCount++}`);
-      values.push(points);
+      values.push(pointsReward);
+    }
+    if (frequency !== undefined) {
+      updates.push(`frequency = $${paramCount++}`);
+      values.push(frequency);
+    }
+    if (assignedTo !== undefined) {
+      updates.push(`assigned_to = $${paramCount++}`);
+      values.push(assignedTo || null);
     }
     if (is_active !== undefined) {
       updates.push(`is_active = $${paramCount++}`);
@@ -223,7 +288,7 @@ router.post('/:id/complete', async (req, res) => {
 
     // Verify quest exists and is active
     const questResult = await query(
-      'SELECT id, points, is_active FROM quests WHERE id = $1 AND household_id = $2',
+      'SELECT id, points, is_active, assigned_to, frequency FROM quests WHERE id = $1 AND household_id = $2',
       [id, req.user.household_id]
     );
 
@@ -231,32 +296,63 @@ router.post('/:id/complete', async (req, res) => {
       return res.status(404).json({ error: 'Quest not found' });
     }
 
-    if (!questResult.rows[0].is_active) {
+    const quest = questResult.rows[0];
+
+    if (!quest.is_active) {
       return res.status(400).json({ error: 'Quest is not active' });
     }
 
-    // Check if already completed today
-    const existingResult = await query(
-      `SELECT id FROM quest_completions 
-       WHERE quest_id = $1 AND user_id = $2 AND DATE(completed_at) = CURRENT_DATE`,
-      [id, req.user.id]
-    );
-
-    if (existingResult.rows.length > 0) {
-      return res.status(400).json({ error: 'Quest already completed today' });
+    // Check if quest is assigned to this user or to all (null)
+    if (quest.assigned_to !== null && quest.assigned_to !== req.user.id) {
+      return res.status(403).json({ error: 'Quest is not assigned to you' });
     }
 
-    // Record completion
+    // Check frequency-based completion limits
+    let dateCheck = '';
+    if (quest.frequency === 'daily') {
+      dateCheck = 'DATE(completed_at) = CURRENT_DATE';
+    } else if (quest.frequency === 'weekly') {
+      dateCheck = `DATE_TRUNC('week', completed_at) = DATE_TRUNC('week', CURRENT_DATE)`;
+    } else if (quest.frequency === 'monthly') {
+      dateCheck = `DATE_TRUNC('month', completed_at) = DATE_TRUNC('month', CURRENT_DATE)`;
+    }
+
+    // Check if already completed in this period
+    if (dateCheck) {
+      const existingResult = await query(
+        `SELECT id FROM quest_completions 
+         WHERE quest_id = $1 AND user_id = $2 AND ${dateCheck}`,
+        [id, req.user.id]
+      );
+
+      if (existingResult.rows.length > 0) {
+        return res.status(400).json({ 
+          error: `Quest already completed this ${quest.frequency}` 
+        });
+      }
+    }
+
+    // Record completion with points snapshot
     const completionResult = await query(
-      `INSERT INTO quest_completions (quest_id, user_id)
-       VALUES ($1, $2)
+      `INSERT INTO quest_completions (quest_id, user_id, points_awarded)
+       VALUES ($1, $2, $3)
        RETURNING *`,
-      [id, req.user.id]
+      [id, req.user.id, quest.points]
+    );
+
+    // Update or create member_points record
+    await query(
+      `INSERT INTO member_points (user_id, household_id, points_balance)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (user_id, household_id) 
+       DO UPDATE SET points_balance = member_points.points_balance + $3,
+                     updated_at = CURRENT_TIMESTAMP`,
+      [req.user.id, req.user.household_id, quest.points]
     );
 
     res.status(201).json({ 
       completion: completionResult.rows[0],
-      pointsEarned: questResult.rows[0].points
+      pointsAwarded: quest.points
     });
   } catch (error) {
     console.error('Complete quest error:', error);

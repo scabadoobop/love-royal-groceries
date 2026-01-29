@@ -10,14 +10,14 @@
 }
 
 .forum-header h2 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0;
   font-size: 28px;
 }
 
 .royal-button.primary {
-  background: linear-gradient(135deg, #ec4899, #f9a8d4);
-  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: var(--text-on-primary);
   border: none;
   padding: 12px 24px;
   border-radius: 12px;
@@ -28,7 +28,7 @@
 
 .royal-button.primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  box-shadow: 0 4px 12px var(--shadow-primary-strong);
 }
 
 .royal-button.primary:disabled {
@@ -38,8 +38,8 @@
 }
 
 .royal-button.secondary {
-  background: #6b7280;
-  color: white;
+  background: var(--neutral);
+  color: var(--text-on-primary);
   border: none;
   padding: 12px 24px;
   border-radius: 12px;
@@ -49,15 +49,15 @@
 }
 
 .royal-button.secondary:hover {
-  background: #4b5563;
+  background: var(--neutral-hover);
 }
 
 .error-message {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--error-bg);
+  color: var(--error-text);
   padding: 12px 16px;
   border-radius: 8px;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--error-border);
   margin-bottom: 16px;
   display: flex;
   justify-content: space-between;
@@ -67,7 +67,7 @@
 .error-close {
   background: none;
   border: none;
-  color: #dc2626;
+  color: var(--error-text);
   cursor: pointer;
   font-size: 18px;
   padding: 0;
@@ -79,7 +79,7 @@
 }
 
 .categories-view h3 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0 0 24px 0;
   font-size: 24px;
 }
@@ -91,10 +91,10 @@
 }
 
 .category-card {
-  background: white;
+  background: var(--surface);
   padding: 24px;
   border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px var(--shadow);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -105,13 +105,13 @@
 }
 
 .category-card h4 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0 0 12px 0;
   font-size: 20px;
 }
 
 .category-card p {
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0 0 16px 0;
   line-height: 1.5;
 }
@@ -120,7 +120,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 14px;
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 .threads-view {
@@ -136,8 +136,8 @@
 }
 
 .back-button {
-  background: #6b7280;
-  color: white;
+  background: var(--neutral);
+  color: var(--text-on-primary);
   border: none;
   padding: 8px 16px;
   border-radius: 8px;
@@ -147,24 +147,24 @@
 }
 
 .back-button:hover {
-  background: #4b5563;
+  background: var(--neutral-hover);
 }
 
 .threads-header h3 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0;
   font-size: 24px;
 }
 
 .new-thread-form {
-  background: white;
+  background: var(--surface);
   padding: 24px;
   border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px var(--shadow);
 }
 
 .new-thread-form h4 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0 0 20px 0;
   font-size: 20px;
 }
@@ -175,7 +175,7 @@
 
 .form-group label {
   display: block;
-  color: #9d174d;
+  color: var(--text-primary);
   font-weight: bold;
   margin-bottom: 6px;
   font-size: 14px;
@@ -184,7 +184,7 @@
 .royal-input {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid #f9a8d4;
+  border: 2px solid var(--border);
   border-radius: 12px;
   font-size: 16px;
   transition: border-color 0.2s;
@@ -193,14 +193,14 @@
 
 .royal-input:focus {
   outline: none;
-  border-color: #ec4899;
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--shadow-focus);
 }
 
 .royal-textarea {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid #f9a8d4;
+  border: 2px solid var(--border);
   border-radius: 12px;
   font-size: 16px;
   font-family: inherit;
@@ -211,8 +211,8 @@
 
 .royal-textarea:focus {
   outline: none;
-  border-color: #ec4899;
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--shadow-focus);
 }
 
 .form-actions {
@@ -226,10 +226,10 @@
 }
 
 .thread-card {
-  background: white;
+  background: var(--surface);
   padding: 20px;
   border-radius: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow);
   transition: all 0.2s;
   display: flex;
   justify-content: space-between;
@@ -243,12 +243,12 @@
 }
 
 .thread-card.pinned {
-  border-left: 4px solid #ec4899;
+  border-left: 4px solid var(--primary);
 }
 
 .thread-card.expired {
   opacity: 0.7;
-  background: #f9fafb;
+  background: var(--surface-secondary);
 }
 
 .thread-content {
@@ -264,7 +264,7 @@
 }
 
 .thread-content h4 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0;
   font-size: 18px;
 }
@@ -274,12 +274,12 @@
   flex-wrap: wrap;
   gap: 16px;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .pinned-badge {
-  background: #fce7f3;
-  color: #9d174d;
+  background: var(--surface-active);
+  color: var(--text-primary);
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
@@ -287,8 +287,8 @@
 }
 
 .expired-badge {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--error-bg);
+  color: var(--error-text);
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
@@ -301,9 +301,9 @@
 }
 
 .pin-button {
-  background: #f3f4f6;
-  color: #6b7280;
-  border: 1px solid #e5e7eb;
+  background: var(--border-muted);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
   padding: 8px 12px;
   border-radius: 8px;
   cursor: pointer;
@@ -314,8 +314,8 @@
 }
 
 .pin-button:hover {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--border-light);
+  color: var(--text-tertiary);
 }
 
 .posts-view {
@@ -331,7 +331,7 @@
 }
 
 .posts-header h3 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0;
   font-size: 24px;
 }
@@ -342,14 +342,14 @@
 }
 
 .post-card {
-  background: white;
+  background: var(--surface);
   padding: 20px;
   border-radius: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 .post-content p {
-  color: #374151;
+  color: var(--text-tertiary);
   margin: 0 0 12px 0;
   line-height: 1.6;
   font-size: 16px;
@@ -359,7 +359,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .post-author {
@@ -367,18 +367,18 @@
 }
 
 .post-date {
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 .new-post-form {
-  background: white;
+  background: var(--surface);
   padding: 24px;
   border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px var(--shadow);
 }
 
 .new-post-form h4 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0 0 16px 0;
   font-size: 18px;
 }
@@ -386,13 +386,13 @@
 .empty-state {
   text-align: center;
   padding: 48px;
-  background: white;
+  background: var(--surface);
   border-radius: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 .empty-state p {
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
   font-size: 16px;
 }
@@ -400,16 +400,16 @@
 .loading-container {
   text-align: center;
   padding: 48px;
-  background: white;
+  background: var(--surface);
   border-radius: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f4f6;
-  border-top: 4px solid #ec4899;
+  border: 4px solid var(--border-muted);
+  border-top: 4px solid var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;

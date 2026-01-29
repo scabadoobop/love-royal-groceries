@@ -1,15 +1,36 @@
 .landing-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #fce7f3, #f9a8d4, #ec4899);
+  background: linear-gradient(135deg, var(--bg-gradient-primary-start), var(--bg-gradient-primary-end), var(--primary));
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
 }
 
+.back-to-marketing {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-to-marketing:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-focus);
+}
+
 .landing-container {
   max-width: 500px;
   width: 100%;
+  position: relative;
 }
 
 .landing-header {

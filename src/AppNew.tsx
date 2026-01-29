@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import MarketingLanding from './components/MarketingLanding';
 import LandingPage from './components/LandingPage';
 import MainApp from './components/MainApp';
 import { apiService } from './services/api';
@@ -15,6 +16,7 @@ interface User {
 function AppNew() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
     // Check if user is already authenticated
@@ -65,7 +67,10 @@ function AppNew() {
   }
 
   if (!user) {
-    return <LandingPage onKeyValidated={handleKeyValidated} />;
+    if (showLogin) {
+      return <LandingPage onKeyValidated={handleKeyValidated} onBack={() => setShowLogin(false)} />;
+    }
+    return <MarketingLanding onGetStarted={() => setShowLogin(true)} />;
   }
 
   return <MainApp user={user} onLogout={handleLogout} />;

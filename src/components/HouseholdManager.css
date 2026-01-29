@@ -10,7 +10,7 @@
 }
 
 .household-header h2 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0;
   font-size: 28px;
 }
@@ -21,8 +21,8 @@
 }
 
 .admin-badge {
-  background: #ec4899;
-  color: white;
+  background: var(--primary);
+  color: var(--text-on-primary);
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 14px;
@@ -30,11 +30,11 @@
 }
 
 .error-message {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--error-bg);
+  color: var(--error-text);
   padding: 12px 16px;
   border-radius: 8px;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--error-border);
   margin-bottom: 16px;
   display: flex;
   justify-content: space-between;
@@ -44,7 +44,7 @@
 .error-close {
   background: none;
   border: none;
-  color: #dc2626;
+  color: var(--error-text);
   cursor: pointer;
   font-size: 18px;
   padding: 0;
@@ -60,14 +60,14 @@
 }
 
 .info-card {
-  background: white;
+  background: var(--surface);
   padding: 24px;
   border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px var(--shadow);
 }
 
 .info-card h3 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0 0 20px 0;
   font-size: 20px;
 }
@@ -85,7 +85,7 @@
 }
 
 .info-item label {
-  color: #6b7280;
+  color: var(--text-secondary);
   font-weight: 500;
   font-size: 14px;
 }
@@ -95,7 +95,7 @@
   align-items: center;
   gap: 8px;
   font-size: 16px;
-  color: #374151;
+  color: var(--text-tertiary);
 }
 
 .edit-btn {
@@ -121,7 +121,7 @@
 .royal-input {
   flex: 1;
   padding: 8px 12px;
-  border: 2px solid #f9a8d4;
+  border: 2px solid var(--border);
   border-radius: 8px;
   font-size: 16px;
   transition: border-color 0.2s;
@@ -129,13 +129,13 @@
 
 .royal-input:focus {
   outline: none;
-  border-color: #ec4899;
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--shadow-focus);
 }
 
 .royal-button.primary {
-  background: linear-gradient(135deg, #ec4899, #f9a8d4);
-  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: var(--text-on-primary);
   border: none;
   padding: 8px 16px;
   border-radius: 8px;
@@ -161,8 +161,8 @@
 }
 
 .royal-button.secondary {
-  background: #6b7280;
-  color: white;
+  background: var(--neutral);
+  color: var(--text-on-primary);
   border: none;
   padding: 8px 16px;
   border-radius: 8px;
@@ -172,7 +172,7 @@
 }
 
 .royal-button.secondary:hover {
-  background: #4b5563;
+  background: var(--neutral-hover);
 }
 
 .royal-button.secondary.small {
@@ -182,7 +182,7 @@
 
 .royal-button.danger {
   background: #ef4444;
-  color: white;
+  color: var(--text-on-primary);
   border: none;
   padding: 8px 16px;
   border-radius: 8px;
@@ -208,7 +208,7 @@
   font-family: monospace;
   font-size: 16px;
   font-weight: bold;
-  color: #374151;
+  color: var(--text-tertiary);
   flex: 1;
 }
 
@@ -242,7 +242,7 @@
 }
 
 .modal-content {
-  background: white;
+  background: var(--surface);
   padding: 32px;
   border-radius: 16px;
   box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
@@ -251,13 +251,13 @@
 }
 
 .modal-content h3 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0 0 16px 0;
   font-size: 20px;
 }
 
 .modal-content p {
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0 0 24px 0;
   line-height: 1.5;
 }
@@ -273,7 +273,7 @@
 }
 
 .members-section h3 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0 0 20px 0;
   font-size: 24px;
 }
@@ -284,10 +284,10 @@
 }
 
 .member-card {
-  background: white;
+  background: var(--surface);
   padding: 20px;
   border-radius: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 .member-info {
@@ -303,7 +303,7 @@
 }
 
 .member-header h4 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0;
   font-size: 18px;
 }
@@ -317,7 +317,7 @@
 
 .role-badge.admin {
   background: #fef3f2;
-  color: #dc2626;
+  color: var(--error-text);
 }
 
 .role-badge.member {
@@ -326,7 +326,7 @@
 }
 
 .member-email {
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
   font-size: 14px;
 }
@@ -335,7 +335,7 @@
   display: flex;
   gap: 16px;
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 .household-actions {
@@ -345,21 +345,21 @@
 }
 
 .action-card {
-  background: white;
+  background: var(--surface);
   padding: 24px;
   border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px var(--shadow);
   text-align: center;
 }
 
 .action-card h4 {
-  color: #9d174d;
+  color: var(--text-primary);
   margin: 0 0 12px 0;
   font-size: 18px;
 }
 
 .action-card p {
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0 0 20px 0;
   line-height: 1.5;
   font-size: 14px;
@@ -368,16 +368,16 @@
 .loading-container {
   text-align: center;
   padding: 48px;
-  background: white;
+  background: var(--surface);
   border-radius: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f4f6;
-  border-top: 4px solid #ec4899;
+  border: 4px solid var(--border-muted);
+  border-top: 4px solid var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;

@@ -1,0 +1,72 @@
+/* Theme System - Royal Groceries App */
+
+/* Royal Pack Theme (Default) */
+:root {
+  /* Background Colors */
+  --bg: #fff0f6;
+  --bg-gradient-start: #ffe4ef;
+  --bg-gradient-end: #ffd1ea;
+  --bg-gradient-primary-start: #fce7f3;
+  --bg-gradient-primary-end: #f9a8d4;
+  --bg-gradient-primary-accent: #ec4899;
+  
+  /* Surface Colors */
+  --surface: #fff;
+  --surface-secondary: #f9fafb;
+  --surface-tertiary: #f3f4f6;
+  --surface-hover: #fef3f2;
+  --surface-active: #fce7f3;
+  
+  /* Text Colors */
+  --text: #3b0a2a;
+  --text-primary: #9d174d;
+  --text-secondary: #6b7280;
+  --text-tertiary: #374151;
+  --text-muted: #9ca3af;
+  --text-on-primary: #fff;
+  
+  /* Primary Colors */
+  --primary: #ec4899;
+  --primary-hover: #db2777;
+  --primary-light: #f9a8d4;
+  --primary-lighter: #fce7f3;
+  
+  /* Border Colors */
+  --border: #f9a8d4;
+  --border-light: #e5e7eb;
+  --border-muted: #f3f4f6;
+  --border-focus: #ec4899;
+  
+  /* Shadow Colors */
+  --shadow: rgba(0, 0, 0, 0.1);
+  --shadow-primary: rgba(236, 72, 153, 0.2);
+  --shadow-primary-strong: rgba(236, 72, 153, 0.3);
+  --shadow-focus: rgba(236, 72, 153, 0.1);
+  
+  /* Status Colors */
+  --error-bg: #fef2f2;
+  --error-text: #dc2626;
+  --error-border: #fecaca;
+  --error-button: #ef4444;
+  --error-button-hover: #dc2626;
+  
+  --success-bg: #d1fae5;
+  --success-text: #059669;
+  
+  --warning-bg: #fef3c7;
+  --warning-text: #d97706;
+  
+  /* Neutral Colors */
+  --neutral: #6b7280;
+  --neutral-hover: #4b5563;
+  --neutral-light: #f3f4f6;
+  
+  /* Badge Colors */
+  --badge-yellow-bg: #fef08a;
+  --badge-yellow-text: #854d0e;
+  --badge-red-bg: #fecaca;
+  --badge-red-text: #7f1d1d;
+  --badge-green-bg: #bbf7d0;
+  --badge-green-text: #065f46;
+}
+

@@ -4,7 +4,6 @@ import GroceryManager from './GroceryManager';
 import NotesManager from './NotesManager';
 import ForumManager from './ForumManager';
 import HouseholdManager from './HouseholdManager';
-import QuestManager from './QuestManager';
 import './MainApp.css';
 
 interface User {
@@ -21,7 +20,7 @@ interface MainAppProps {
 }
 
 export default function MainApp({ user, onLogout }: MainAppProps) {
-  const [activeTab, setActiveTab] = useState<'groceries' | 'notes' | 'forum' | 'household' | 'quests'>('groceries');
+  const [activeTab, setActiveTab] = useState<'groceries' | 'notes' | 'forum' | 'household'>('groceries');
   const [householdInfo, setHouseholdInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -75,6 +74,12 @@ export default function MainApp({ user, onLogout }: MainAppProps) {
           </div>
           
           <div className="header-right">
+            <div className="theme-selector">
+              <label htmlFor="theme-select" className="theme-label">Theme:</label>
+              <select id="theme-select" className="theme-select" defaultValue="royal-pack">
+                <option value="royal-pack">Royal Pack</option>
+              </select>
+            </div>
             <div className="user-info">
               <span className="user-name">Welcome, {user.username}</span>
               {user.role === 'admin' && (
@@ -113,20 +118,13 @@ export default function MainApp({ user, onLogout }: MainAppProps) {
         >
           👥 Household
         </button>
-        <button 
-          className={`nav-button ${activeTab === 'quests' ? 'active' : ''}`}
-          onClick={() => setActiveTab('quests')}
-        >
-          ⚔️ Quests
-        </button>
       </nav>
 
       <main className="app-main">
         {activeTab === 'groceries' && <GroceryManager />}
         {activeTab === 'notes' && <NotesManager />}
-        {activeTab === 'forum' && <ForumManager userRole={user.role} />}
+        {activeTab === 'forum' && <ForumManager />}
         {activeTab === 'household' && <HouseholdManager user={user} onLogout={onLogout} />}
-        {activeTab === 'quests' && <QuestManager userRole={user.role} />}
       </main>
     </div>
   );

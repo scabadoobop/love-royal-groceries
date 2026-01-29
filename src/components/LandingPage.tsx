@@ -12,9 +12,10 @@ interface User {
 
 interface LandingPageProps {
   onKeyValidated: (user: User) => void;
+  onBack?: () => void;
 }
 
-export default function LandingPage({ onKeyValidated }: LandingPageProps) {
+export default function LandingPage({ onKeyValidated, onBack }: LandingPageProps) {
   const [step, setStep] = useState<'register' | 'login'>('register');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -110,6 +111,11 @@ export default function LandingPage({ onKeyValidated }: LandingPageProps) {
   return (
     <div className="landing-page">
       <div className="landing-container">
+        {onBack && (
+          <button className="back-to-marketing" onClick={onBack}>
+            ← Back to Home
+          </button>
+        )}
         <div className="landing-header">
           <span className="crown">👑</span>
           <h1 className="royal-title">Royal Pantry & Fridge</h1>

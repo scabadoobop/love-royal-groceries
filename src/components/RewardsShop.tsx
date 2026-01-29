@@ -114,7 +114,7 @@ export default function RewardsShop({ userRole = 'member', availablePoints, onRe
         name: reward.name,
         description: reward.description,
         points_cost: reward.points_cost,
-        stock_quantity: reward.stock_quantity,
+        stock_quantity: reward.stock_quantity ?? undefined,
         is_available: reward.is_available
       });
       if (response.data) {

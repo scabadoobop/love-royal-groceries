@@ -100,11 +100,11 @@ export default function QuestManager({ userRole = 'member' }: QuestManagerProps)
     if (!newQuest.title.trim() || newQuest.points < 1) return;
 
     try {
-      const response = await apiService.createQuest(
-        newQuest.title.trim(),
-        newQuest.description.trim(),
-        newQuest.points
-      );
+      const response = await apiService.createQuest({
+        title: newQuest.title.trim(),
+        description: newQuest.description.trim(),
+        pointsReward: newQuest.points
+      });
       if (response.data) {
         setNewQuest({ title: '', description: '', points: 10 });
         setShowNewQuest(false);
@@ -122,7 +122,7 @@ export default function QuestManager({ userRole = 'member' }: QuestManagerProps)
       const response = await apiService.updateQuest(quest.id, {
         title: quest.title,
         description: quest.description,
-        points: quest.points,
+        pointsReward: quest.points,
         is_active: quest.is_active
       });
       if (response.data) {
@@ -407,11 +407,10 @@ export default function QuestManager({ userRole = 'member' }: QuestManagerProps)
       )}
 
       {activeTab === 'shop' && progress && (
-        <RewardsShop
-          userRole={userRole}
-          availablePoints={progress.availablePoints}
-          onRedeem={loadProgress}
-        />
+              <RewardsShop 
+                availablePoints={progress.availablePoints}
+                onRedeem={loadProgress}
+              />
       )}
 
       {activeTab === 'leaderboard' && (

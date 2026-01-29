@@ -296,14 +296,14 @@ class ApiService {
     return this.request<{ leaderboard: any[] }>('/quests/leaderboard');
   }
 
-  async createQuest(title: string, description: string, points: number) {
+  async createQuest(data: { title: string; description?: string; pointsReward: number; frequency?: 'daily' | 'weekly' | 'monthly'; assignedTo?: string | null }) {
     return this.request<{ quest: any }>('/quests', {
       method: 'POST',
-      body: JSON.stringify({ title, description, points }),
+      body: JSON.stringify(data),
     });
   }
 
-  async updateQuest(questId: string, data: { title?: string; description?: string; points?: number; is_active?: boolean }) {
+  async updateQuest(questId: string, data: { title?: string; description?: string; pointsReward?: number; frequency?: 'daily' | 'weekly' | 'monthly'; assignedTo?: string | null; is_active?: boolean }) {
     return this.request<{ quest: any }>(`/quests/${questId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -352,8 +352,19 @@ class ApiService {
   }
 
   async redeemReward(rewardId: string) {
-    return this.request<{ redemption: any; remainingPoints: number }>(`/rewards/${rewardId}/redeem`, {
+    return this.request<{ redemption: any; availablePoints: number }>(`/rewards/${rewardId}/redeem`, {
       method: 'POST',
+    });
+  }
+
+  async getAllRedemptions() {
+    return this.request<{ redemptions: any[] }>('/rewards/redemptions');
+  }
+
+  async updateRedemptionStatus(redemptionId: string, status: string) {
+    return this.request<{ redemption: any }>(`/rewards/redemptions/${redemptionId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
     });
   }
 

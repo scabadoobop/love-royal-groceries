@@ -22,28 +22,16 @@ interface Redemption {
 }
 
 interface RewardsShopProps {
-  userRole?: string;
   availablePoints: number;
   onRedeem: () => void;
 }
 
-export default function RewardsShop({ userRole = 'member', availablePoints, onRedeem }: RewardsShopProps) {
+export default function RewardsShop({ availablePoints, onRedeem }: RewardsShopProps) {
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showNewReward, setShowNewReward] = useState(false);
-  const [newReward, setNewReward] = useState({ 
-    name: '', 
-    description: '', 
-    points_cost: 50,
-    stock_quantity: '',
-    hasStock: false
-  });
-  // const [editingReward, setEditingReward] = useState<Reward | null>(null);
   const [activeTab, setActiveTab] = useState<'shop' | 'history'>('shop');
-
-  const isAdmin = userRole === 'admin';
 
   useEffect(() => {
     loadData();
@@ -85,69 +73,9 @@ export default function RewardsShop({ userRole = 'member', availablePoints, onRe
     }
   };
 
-  const createReward = async () => {
-    if (!newReward.name || !newReward.points_cost) {
-      setError('Please fill in all required fields');
-      return;
-    }
 
-    try {
-      const response = await apiService.createReward(
-        newReward.name,
-        newReward.description,
-        newReward.points_cost,
-        newReward.hasStock && newReward.stock_quantity ? parseInt(newReward.stock_quantity) : undefined
-      );
-
-      if (response.data) {
-        setShowNewReward(false);
-        setNewReward({ name: '', description: '', points_cost: 50, stock_quantity: '', hasStock: false });
-        loadRewards();
-      } else {
-        setError(response.error || 'Failed to create reward');
-      }
-    } catch (err) {
-      setError('Failed to create reward');
-    }
-  };
-
-  // const updateReward = async (reward: Reward) => {
-  //   try {
-  //     const response = await apiService.updateReward(reward.id, {
-  //       name: reward.name,
-  //       description: reward.description,
-  //       points_cost: reward.points_cost,
-  //       stock_quantity: reward.stock_quantity ?? undefined,
-  //       is_available: reward.is_available
-  //     });
-  //     if (response.data) {
-  //       setEditingReward(null);
-  //       loadRewards();
-  //     } else {
-  //       setError(response.error || 'Failed to update reward');
-  //     }
-  //   } catch (err) {
-  //     setError('Failed to update reward');
-  //   }
-  // };
-
-  const deleteReward = async (rewardId: string) => {
-    if (!confirm('Delete this reward?')) return;
-
-    try {
-      const response = await apiService.deleteReward(rewardId);
-      if (response.data !== undefined) {
-        loadRewards();
-      } else {
-        setError(response.error || 'Failed to delete reward');
-      }
-    } catch (err) {
-      setError('Failed to delete reward');
-    }
-  };
-
-  const redeemReward = async (rewardId: string) => {
-    if (!confirm('Redeem this reward?')) return;
+  const requestRedemption = async (rewardId: string) => {
+    if (!confirm('Request this reward? An admin will need to approve your request.')) return;
 
     try {
       const response = await apiService.redeemReward(rewardId);
@@ -155,11 +83,12 @@ export default function RewardsShop({ userRole = 'member', availablePoints, onRe
         onRedeem(); // Refresh points
         loadRewards();
         loadRedemptions();
+        setError('');
       } else {
-        setError(response.error || 'Failed to redeem reward');
+        setError(response.error || 'Failed to request redemption');
       }
     } catch (err) {
-      setError('Failed to redeem reward');
+      setError('Failed to request redemption');
     }
   };
 
@@ -176,14 +105,6 @@ export default function RewardsShop({ userRole = 'member', availablePoints, onRe
     <div className="rewards-shop">
       <div className="shop-header">
         <h2>🎁 Rewards Shop</h2>
-        {isAdmin && (
-          <button 
-            className="royal-button primary"
-            onClick={() => setShowNewReward(!showNewReward)}
-          >
-            {showNewReward ? 'Cancel' : '+ New Reward'}
-          </button>
-        )}
       </div>
 
       {error && (
@@ -210,66 +131,8 @@ export default function RewardsShop({ userRole = 'member', availablePoints, onRe
 
       {activeTab === 'shop' && (
         <>
-          {showNewReward && isAdmin && (
-            <div className="reward-form">
-              <h3>Create New Reward</h3>
-              <div className="form-group">
-                <label>Name *</label>
-                <input
-                  className="royal-input"
-                  value={newReward.name}
-                  onChange={(e) => setNewReward({...newReward, name: e.target.value})}
-                  placeholder="Reward name"
-                />
-              </div>
-              <div className="form-group">
-                <label>Description</label>
-                <textarea
-                  className="royal-textarea"
-                  value={newReward.description}
-                  onChange={(e) => setNewReward({...newReward, description: e.target.value})}
-                  placeholder="Reward description"
-                  rows={3}
-                />
-              </div>
-              <div className="form-group">
-                <label>Points Cost *</label>
-                <input
-                  type="number"
-                  className="royal-input"
-                  value={newReward.points_cost}
-                  onChange={(e) => setNewReward({...newReward, points_cost: parseInt(e.target.value) || 0})}
-                  min="1"
-                />
-              </div>
-              <div className="form-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={newReward.hasStock}
-                    onChange={(e) => setNewReward({...newReward, hasStock: e.target.checked})}
-                  />
-                  Track Stock
-                </label>
-                {newReward.hasStock && (
-                  <input
-                    type="number"
-                    className="royal-input"
-                    value={newReward.stock_quantity}
-                    onChange={(e) => setNewReward({...newReward, stock_quantity: e.target.value})}
-                    placeholder="Stock quantity"
-                    min="0"
-                  />
-                )}
-              </div>
-              <button className="royal-button primary" onClick={createReward}>
-                Create Reward
-              </button>
-            </div>
-          )}
-
           <div className="shop-intro">
-            💎 You have <strong>{availablePoints} points</strong> available to redeem!
+            💎 You have <strong>{availablePoints} points</strong> available. Request a reward and wait for admin approval!
           </div>
 
           {rewards.length === 0 ? (
@@ -301,27 +164,12 @@ export default function RewardsShop({ userRole = 'member', availablePoints, onRe
                     )}
                   </div>
                   <div className="reward-actions">
-                    {isAdmin ? (
-                      <>
-                        <button
-                          className="royal-button small"
-                          onClick={() => {/* TODO: Implement edit */}}
-                        >
-                          ✏️ Edit
-                        </button>
-                        <button
-                          className="royal-button small danger"
-                          onClick={() => deleteReward(reward.id)}
-                        >
-                          🗑️ Delete
-                        </button>
-                      </>
-                    ) : reward.is_available && (reward.stock_quantity === null || reward.stock_quantity > 0) && availablePoints >= reward.points_cost ? (
+                    {reward.is_available && (reward.stock_quantity === null || reward.stock_quantity > 0) && availablePoints >= reward.points_cost ? (
                       <button
                         className="royal-button primary"
-                        onClick={() => redeemReward(reward.id)}
+                        onClick={() => requestRedemption(reward.id)}
                       >
-                        🛒 Redeem
+                        📝 Request Redemption
                       </button>
                     ) : (
                       <span className="reward-unavailable">
@@ -338,25 +186,39 @@ export default function RewardsShop({ userRole = 'member', availablePoints, onRe
 
       {activeTab === 'history' && (
         <div className="redemptions-view">
-          <h3>📜 My Redemption History</h3>
+          <h3>📜 My Redemptions</h3>
           <div className="redemptions-list">
             {redemptions.length === 0 ? (
-              <p>You haven't redeemed any rewards yet.</p>
+              <p>You haven't requested any redemptions yet.</p>
             ) : (
               redemptions.map(redemption => (
-                <div key={redemption.id} className="redemption-card">
+                <div key={redemption.id} className={`redemption-card ${redemption.status}`}>
                   <div className="redemption-content">
-                    <h4>{redemption.reward_name}</h4>
+                    <div className="redemption-header">
+                      <h4>{redemption.reward_name}</h4>
+                      <span className={`status-badge ${redemption.status}`}>
+                        {redemption.status}
+                      </span>
+                    </div>
                     {redemption.reward_description && (
                       <p>{redemption.reward_description}</p>
                     )}
                     <div className="redemption-meta">
                       <span>💎 {redemption.points_spent} points</span>
                       <span>{new Date(redemption.redeemed_at).toLocaleString()}</span>
-                      <span className={`status-badge ${redemption.status}`}>
-                        {redemption.status}
-                      </span>
                     </div>
+                    {redemption.status === 'pending' && (
+                      <p className="redemption-note">⏳ Waiting for admin approval. Points will be deducted when approved.</p>
+                    )}
+                    {redemption.status === 'approved' && (
+                      <p className="redemption-note">✅ Approved! Points have been deducted. Waiting to be fulfilled.</p>
+                    )}
+                    {redemption.status === 'denied' && (
+                      <p className="redemption-note">❌ Request denied. Points were not deducted.</p>
+                    )}
+                    {redemption.status === 'fulfilled' && (
+                      <p className="redemption-note">🎉 Reward fulfilled!</p>
+                    )}
                   </div>
                 </div>
               ))

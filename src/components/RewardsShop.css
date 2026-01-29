@@ -221,14 +221,58 @@
   color: var(--warning-text);
 }
 
+.status-badge.approved {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.status-badge.denied {
+  background: var(--error-bg);
+  color: var(--error-text);
+}
+
 .status-badge.fulfilled {
   background: var(--success-bg);
   color: var(--success-text);
 }
 
-.status-badge.cancelled {
+.redemption-card {
+  border-left: 4px solid var(--border);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  background: var(--surface);
+}
+
+.redemption-card.pending {
+  border-left-color: var(--warning-text);
+  background: var(--warning-bg);
+}
+
+.redemption-card.approved {
+  border-left-color: var(--success-text);
+  background: var(--success-bg);
+}
+
+.redemption-card.denied {
+  border-left-color: var(--error-text);
   background: var(--error-bg);
-  color: var(--error-text);
+}
+
+.redemption-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.redemption-note {
+  margin-top: 12px;
+  padding: 8px;
+  background: var(--surface);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
 @media (max-width: 768px) {

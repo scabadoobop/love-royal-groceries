@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS point_redemptions (
     user_id UUID REFERENCES users(id) NOT NULL,
     points_spent INTEGER NOT NULL,
     redeemed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'fulfilled', 'cancelled'))
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'denied', 'fulfilled'))
 );
 
 -- Indexes for performance

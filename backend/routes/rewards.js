@@ -174,7 +174,7 @@ router.delete('/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// Redeem reward (any user)
+// Request redemption (any user) - creates pending redemption
 router.post('/:id/redeem', async (req, res) => {
   try {
     const { id } = req.params;
@@ -200,26 +200,25 @@ router.post('/:id/redeem', async (req, res) => {
       return res.status(400).json({ error: 'Reward is out of stock' });
     }
 
-    // Get user's available points
-    const pointsResult = await query(
-      `SELECT 
-        COALESCE(SUM(q.points), 0) as total_points
-       FROM quest_completions qc
-       JOIN quests q ON qc.quest_id = q.id
-       WHERE qc.user_id = $1 AND q.household_id = $2`,
+    // Get user's available points from member_points (initialize if needed)
+    let pointsResult = await query(
+      `SELECT points_balance 
+       FROM member_points 
+       WHERE user_id = $1 AND household_id = $2`,
       [req.user.id, req.user.household_id]
     );
 
-    const spentResult = await query(
-      `SELECT COALESCE(SUM(points_spent), 0) as points_spent
-       FROM point_redemptions
-       WHERE user_id = $1 AND status != 'cancelled'`,
-      [req.user.id]
-    );
-
-    const totalPoints = parseInt(pointsResult.rows[0].total_points) || 0;
-    const pointsSpent = parseInt(spentResult.rows[0].points_spent) || 0;
-    const availablePoints = totalPoints - pointsSpent;
+    let availablePoints = 0;
+    if (pointsResult.rows.length === 0) {
+      // Initialize member_points if it doesn't exist
+      await query(
+        `INSERT INTO member_points (user_id, household_id, points_balance)
+         VALUES ($1, $2, 0)`,
+        [req.user.id, req.user.household_id]
+      );
+    } else {
+      availablePoints = pointsResult.rows[0].points_balance || 0;
+    }
 
     if (availablePoints < reward.points_cost) {
       return res.status(400).json({ 
@@ -229,29 +228,144 @@ router.post('/:id/redeem', async (req, res) => {
       });
     }
 
-    // Create redemption
+    // Create redemption with pending status (points NOT deducted yet)
     const redemptionResult = await query(
-      `INSERT INTO point_redemptions (reward_id, user_id, points_spent)
-       VALUES ($1, $2, $3)
+      `INSERT INTO point_redemptions (reward_id, user_id, points_spent, status)
+       VALUES ($1, $2, $3, 'pending')
        RETURNING *`,
       [id, req.user.id, reward.points_cost]
     );
 
-    // Update stock if applicable
-    if (reward.stock_quantity !== null) {
+    res.status(201).json({ 
+      redemption: redemptionResult.rows[0],
+      availablePoints
+    });
+  } catch (error) {
+    console.error('Request redemption error:', error);
+    res.status(500).json({ error: 'Server error requesting redemption' });
+  }
+});
+
+// Get all redemptions for household (admin only)
+router.get('/redemptions', requireAdmin, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT pr.*, 
+              r.name as reward_name, 
+              r.description as reward_description,
+              u.username as user_name
+       FROM point_redemptions pr
+       JOIN rewards r ON pr.reward_id = r.id
+       JOIN users u ON pr.user_id = u.id
+       WHERE r.household_id = $1
+       ORDER BY pr.redeemed_at DESC`,
+      [req.user.household_id]
+    );
+
+    res.json({ redemptions: result.rows });
+  } catch (error) {
+    console.error('Get redemptions error:', error);
+    res.status(500).json({ error: 'Server error fetching redemptions' });
+  }
+});
+
+// Update redemption status (admin only)
+router.put('/redemptions/:id', [
+  requireAdmin,
+  body('status').isIn(['pending', 'approved', 'denied', 'fulfilled']).withMessage('Invalid status')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Get redemption details
+    const redemptionResult = await query(
+      `SELECT pr.*, r.household_id
+       FROM point_redemptions pr
+       JOIN rewards r ON pr.reward_id = r.id
+       WHERE pr.id = $1`,
+      [id]
+    );
+
+    if (redemptionResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Redemption not found' });
+    }
+
+    const redemption = redemptionResult.rows[0];
+
+    // Verify household access
+    if (redemption.household_id !== req.user.household_id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const oldStatus = redemption.status;
+
+    // Update status
+    const updateResult = await query(
+      `UPDATE point_redemptions 
+       SET status = $1
+       WHERE id = $2
+       RETURNING *`,
+      [status, id]
+    );
+
+    // If status changed to approved, deduct points
+    if (oldStatus !== 'approved' && status === 'approved') {
+      // Initialize member_points if it doesn't exist
       await query(
-        'UPDATE rewards SET stock_quantity = stock_quantity - 1 WHERE id = $1',
-        [id]
+        `INSERT INTO member_points (user_id, household_id, points_balance)
+         SELECT $2, $3, 0
+         WHERE NOT EXISTS (
+           SELECT 1 FROM member_points WHERE user_id = $2 AND household_id = $3
+         )`,
+        [redemption.points_spent, redemption.user_id, redemption.household_id]
+      );
+      
+      await query(
+        `UPDATE member_points 
+         SET points_balance = points_balance - $1,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE user_id = $2 AND household_id = $3`,
+        [redemption.points_spent, redemption.user_id, redemption.household_id]
+      );
+
+      // Update stock if applicable
+      await query(
+        `UPDATE rewards 
+         SET stock_quantity = stock_quantity - 1 
+         WHERE id = $1 AND stock_quantity IS NOT NULL`,
+        [redemption.reward_id]
       );
     }
 
-    res.status(201).json({ 
-      redemption: redemptionResult.rows[0],
-      remainingPoints: availablePoints - reward.points_cost
-    });
+    // If status changed from approved to something else, refund points
+    if (oldStatus === 'approved' && status !== 'approved') {
+      await query(
+        `UPDATE member_points 
+         SET points_balance = points_balance + $1,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE user_id = $2 AND household_id = $3`,
+        [redemption.points_spent, redemption.user_id, redemption.household_id]
+      );
+
+      // Restore stock if applicable
+      await query(
+        `UPDATE rewards 
+         SET stock_quantity = stock_quantity + 1 
+         WHERE id = $1 AND stock_quantity IS NOT NULL`,
+        [redemption.reward_id]
+      );
+    }
+
+    res.json({ redemption: updateResult.rows[0] });
   } catch (error) {
-    console.error('Redeem reward error:', error);
-    res.status(500).json({ error: 'Server error redeeming reward' });
+    console.error('Update redemption error:', error);
+    res.status(500).json({ error: 'Server error updating redemption' });
   }
 });
 

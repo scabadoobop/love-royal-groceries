@@ -124,7 +124,12 @@ router.post('/', [
   requireAdmin,
   body('title').trim().isLength({ min: 1, max: 255 }).withMessage('Title required (1-255 characters)'),
   body('description').optional().trim().isLength({ max: 1000 }),
-  body('pointsReward').isInt({ min: 1, max: 1000 }).withMessage('Points must be between 1 and 1000'),
+  body('pointsReward')
+    .custom((value) => {
+      const num = parseInt(value);
+      return !isNaN(num) && Number.isInteger(num) && num >= 1 && num <= 1000;
+    })
+    .withMessage('Points must be an integer between 1 and 1000'),
   body('frequency').optional().isIn(['daily', 'weekly', 'monthly']).withMessage('Frequency must be daily, weekly, or monthly'),
   body('assignedTo').optional().custom((value) => {
     if (value === null || value === '' || value === undefined) return true;
@@ -140,6 +145,12 @@ router.post('/', [
     }
 
     const { title, description, pointsReward, frequency, assignedTo } = req.body;
+    
+    // Ensure pointsReward is an integer
+    const pointsValue = parseInt(pointsReward);
+    if (isNaN(pointsValue) || pointsValue < 1 || pointsValue > 1000) {
+      return res.status(400).json({ error: 'Points must be an integer between 1 and 1000' });
+    }
 
     // Normalize assignedTo: convert empty string to null
     const normalizedAssignedTo = (assignedTo === '' || assignedTo === undefined) ? null : assignedTo;
@@ -163,7 +174,7 @@ router.post('/', [
         req.user.household_id, 
         title, 
         description || null, 
-        pointsReward || 10, 
+        pointsValue, 
         frequency || 'daily',
         normalizedAssignedTo,
         req.user.id
@@ -182,7 +193,11 @@ router.put('/:id', [
   requireAdmin,
   body('title').optional().trim().isLength({ min: 1, max: 255 }),
   body('description').optional().trim().isLength({ max: 1000 }),
-  body('pointsReward').optional().isInt({ min: 1, max: 1000 }),
+  body('pointsReward').optional().custom((value) => {
+    if (value === undefined || value === null) return true;
+    const num = parseInt(value);
+    return !isNaN(num) && Number.isInteger(num) && num >= 1 && num <= 1000;
+  }).withMessage('Points must be an integer between 1 and 1000'),
   body('frequency').optional().isIn(['daily', 'weekly', 'monthly']),
   body('assignedTo').optional().custom((value) => {
     if (value === null || value === '') return true;
@@ -226,8 +241,12 @@ router.put('/:id', [
       values.push(description);
     }
     if (pointsReward !== undefined) {
+      const pointsValue = parseInt(pointsReward);
+      if (isNaN(pointsValue) || pointsValue < 1 || pointsValue > 1000) {
+        return res.status(400).json({ error: 'Points must be an integer between 1 and 1000' });
+      }
       updates.push(`points = $${paramCount++}`);
-      values.push(pointsReward);
+      values.push(pointsValue);
     }
     if (frequency !== undefined) {
       updates.push(`frequency = $${paramCount++}`);

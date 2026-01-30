@@ -85,16 +85,18 @@ export default function AdminQuestsManager({ userRole }: AdminQuestsManagerProps
   };
 
   const createQuest = async () => {
-    if (!newQuest.title.trim() || newQuest.pointsReward < 1) {
-      setError('Title and points (min 1) are required');
+    // Validate points is a valid integer between 1 and 1000
+    const pointsValue = Number(newQuest.pointsReward);
+    if (!newQuest.title.trim() || !Number.isInteger(pointsValue) || pointsValue < 1 || pointsValue > 1000) {
+      setError('Title is required and points must be an integer between 1 and 1000');
       return;
     }
 
     try {
       const questData = {
-        title: newQuest.title,
-        description: newQuest.description || undefined,
-        pointsReward: newQuest.pointsReward,
+        title: newQuest.title.trim(),
+        description: newQuest.description?.trim() || undefined,
+        pointsReward: pointsValue, // Ensure it's a number
         frequency: newQuest.frequency,
         assignedTo: newQuest.assignedTo || null
       };
@@ -322,8 +324,17 @@ export default function AdminQuestsManager({ userRole }: AdminQuestsManagerProps
                 type="number"
                 className="royal-input"
                 value={newQuest.pointsReward}
-                onChange={(e) => setNewQuest({...newQuest, pointsReward: parseInt(e.target.value) || 0})}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val) && val >= 1 && val <= 1000) {
+                    setNewQuest({...newQuest, pointsReward: val});
+                  } else if (e.target.value === '') {
+                    setNewQuest({...newQuest, pointsReward: 10});
+                  }
+                }}
                 min="1"
+                max="1000"
+                required
               />
             </div>
 

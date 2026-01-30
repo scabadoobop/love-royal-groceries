@@ -126,7 +126,12 @@ router.post('/', [
   body('description').optional().trim().isLength({ max: 1000 }),
   body('pointsReward').isInt({ min: 1, max: 1000 }).withMessage('Points must be between 1 and 1000'),
   body('frequency').optional().isIn(['daily', 'weekly', 'monthly']).withMessage('Frequency must be daily, weekly, or monthly'),
-  body('assignedTo').optional().isUUID().withMessage('assignedTo must be a valid user ID or null for all')
+  body('assignedTo').optional().custom((value) => {
+    if (value === null || value === '' || value === undefined) return true;
+    // Basic UUID format check
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(value);
+  }).withMessage('assignedTo must be a valid user ID or null/empty for all')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -136,8 +141,11 @@ router.post('/', [
 
     const { title, description, pointsReward, frequency, assignedTo } = req.body;
 
+    // Normalize assignedTo: convert empty string to null
+    const normalizedAssignedTo = (assignedTo === '' || assignedTo === undefined) ? null : assignedTo;
+
     // Validate assignedTo belongs to household if provided
-    if (assignedTo) {
+    if (normalizedAssignedTo) {
       const userCheck = await query(
         'SELECT id FROM users WHERE id = $1 AND household_id = $2',
         [assignedTo, req.user.household_id]
@@ -157,7 +165,7 @@ router.post('/', [
         description || null, 
         pointsReward || 10, 
         frequency || 'daily',
-        assignedTo || null,
+        normalizedAssignedTo,
         req.user.id
       ]
     );

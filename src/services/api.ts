@@ -3,6 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 interface ApiResponse<T> {
   data?: T;
   error?: string;
+  errors?: Array<{ msg?: string; message?: string; param?: string }>;
   message?: string;
 }
 
@@ -33,6 +34,10 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
+        // Handle validation errors
+        if (data.errors && Array.isArray(data.errors)) {
+          return { errors: data.errors, error: data.errors.map((e: any) => e.msg || e.message).join(', ') };
+        }
         return { error: data.error || 'Request failed' };
       }
 

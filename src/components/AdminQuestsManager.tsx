@@ -106,10 +106,17 @@ export default function AdminQuestsManager({ userRole }: AdminQuestsManagerProps
         alert('✅ Quest created successfully!');
         loadQuests();
       } else {
-        setError(response.error || 'Failed to create quest');
+        // Show validation errors if available
+        if (response.errors && Array.isArray(response.errors)) {
+          const errorMessages = response.errors.map((e: any) => e.msg || e.message || e).join(', ');
+          setError(errorMessages || 'Failed to create quest');
+        } else {
+          setError(response.error || 'Failed to create quest');
+        }
       }
-    } catch (err) {
-      setError('Failed to create quest');
+    } catch (err: any) {
+      console.error('Create quest error:', err);
+      setError(err.message || 'Failed to create quest');
     }
   };
 

@@ -156,6 +156,8 @@ export default function QuestManager({ userRole = 'member' }: QuestManagerProps)
       const response = await apiService.completeQuest(questId);
       if (response.data) {
         setError('');
+        const pointsEarned = response.data.pointsEarned || 0;
+        alert(`✅ Quest completed! You earned 💎 ${pointsEarned} points!`);
         loadData(); // Reload everything
       } else {
         setError(response.error || 'Failed to complete quest');

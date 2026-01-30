@@ -80,10 +80,11 @@ export default function RewardsShop({ availablePoints, onRedeem }: RewardsShopPr
     try {
       const response = await apiService.redeemReward(rewardId);
       if (response.data) {
+        setError('');
+        alert('✅ Redemption request submitted! Waiting for admin approval.');
         onRedeem(); // Refresh points
         loadRewards();
         loadRedemptions();
-        setError('');
       } else {
         setError(response.error || 'Failed to request redemption');
       }

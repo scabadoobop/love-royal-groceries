@@ -102,8 +102,9 @@ export default function AdminQuestsManager({ userRole }: AdminQuestsManagerProps
       if (response.data) {
         setShowNewQuest(false);
         setNewQuest({ title: '', description: '', pointsReward: 10, frequency: 'daily', assignedTo: '' });
-        loadQuests();
         setError('');
+        alert('✅ Quest created successfully!');
+        loadQuests();
       } else {
         setError(response.error || 'Failed to create quest');
       }
@@ -125,8 +126,9 @@ export default function AdminQuestsManager({ userRole }: AdminQuestsManagerProps
 
       if (response.data) {
         setEditingQuest(null);
-        loadQuests();
         setError('');
+        alert('✅ Quest updated successfully!');
+        loadQuests();
       } else {
         setError(response.error || 'Failed to update quest');
       }

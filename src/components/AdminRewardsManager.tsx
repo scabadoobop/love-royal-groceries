@@ -104,8 +104,9 @@ export default function AdminRewardsManager({ userRole }: AdminRewardsManagerPro
       if (response.data) {
         setShowNewReward(false);
         setNewReward({ name: '', description: '', points_cost: 50, stock_quantity: '', hasStock: false });
-        loadRewards();
         setError('');
+        alert('✅ Reward created successfully!');
+        loadRewards();
       } else {
         setError(response.error || 'Failed to create reward');
       }
@@ -126,8 +127,9 @@ export default function AdminRewardsManager({ userRole }: AdminRewardsManagerPro
 
       if (response.data) {
         setEditingReward(null);
-        loadRewards();
         setError('');
+        alert('✅ Reward updated successfully!');
+        loadRewards();
       } else {
         setError(response.error || 'Failed to update reward');
       }
@@ -158,8 +160,14 @@ export default function AdminRewardsManager({ userRole }: AdminRewardsManagerPro
     try {
       const response = await apiService.updateRedemptionStatus(redemptionId, status);
       if (response.data) {
-        loadRedemptions();
         setError('');
+        const statusMessages: { [key: string]: string } = {
+          'approved': '✅ Redemption approved! Points have been deducted.',
+          'denied': '❌ Redemption denied. Points were not deducted.',
+          'fulfilled': '🎉 Redemption marked as fulfilled!'
+        };
+        alert(statusMessages[status] || 'Status updated successfully!');
+        loadRedemptions();
       } else {
         setError(response.error || 'Failed to update redemption status');
       }

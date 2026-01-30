@@ -148,7 +148,7 @@ router.post('/', [
     if (normalizedAssignedTo) {
       const userCheck = await query(
         'SELECT id FROM users WHERE id = $1 AND household_id = $2',
-        [assignedTo, req.user.household_id]
+        [normalizedAssignedTo, req.user.household_id]
       );
       if (userCheck.rows.length === 0) {
         return res.status(400).json({ error: 'assignedTo user must belong to the same household' });

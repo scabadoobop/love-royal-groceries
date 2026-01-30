@@ -34,11 +34,12 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
+        console.error('API error response:', { status: response.status, statusText: response.statusText, data });
         // Handle validation errors
         if (data.errors && Array.isArray(data.errors)) {
           return { errors: data.errors, error: data.errors.map((e: any) => e.msg || e.message).join(', ') };
         }
-        return { error: data.error || 'Request failed' };
+        return { error: data.error || `Request failed: ${response.status} ${response.statusText}` };
       }
 
       return { data };

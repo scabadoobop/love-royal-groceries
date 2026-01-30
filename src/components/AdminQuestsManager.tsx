@@ -91,13 +91,16 @@ export default function AdminQuestsManager({ userRole }: AdminQuestsManagerProps
     }
 
     try {
-      const response = await apiService.createQuest({
+      const questData = {
         title: newQuest.title,
         description: newQuest.description || undefined,
         pointsReward: newQuest.pointsReward,
         frequency: newQuest.frequency,
         assignedTo: newQuest.assignedTo || null
-      });
+      };
+      console.log('Creating quest with data:', questData);
+      const response = await apiService.createQuest(questData);
+      console.log('Quest creation response:', response);
 
       if (response.data) {
         setShowNewQuest(false);

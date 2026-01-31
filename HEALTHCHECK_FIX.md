@@ -48,3 +48,4 @@ If healthcheck still fails after this:
 
 **The key fix: Binding to '0.0.0.0' explicitly so Railway can reach the server!**
 
+

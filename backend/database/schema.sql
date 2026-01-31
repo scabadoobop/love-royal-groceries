@@ -77,6 +77,18 @@ CREATE TABLE IF NOT EXISTS notes (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Doodles (handwritten/drawn notes)
+CREATE TABLE IF NOT EXISTS doodles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    household_id UUID REFERENCES households(id) NOT NULL,
+    author_id UUID REFERENCES users(id) NOT NULL,
+    image_data TEXT NOT NULL,
+    note_type VARCHAR(20) DEFAULT 'personal' CHECK (note_type IN ('personal', 'family')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_doodles_household ON doodles(household_id);
+
 -- Forum/Thread system for household discussions
 CREATE TABLE IF NOT EXISTS forum_categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -95,7 +107,6 @@ CREATE TABLE IF NOT EXISTS forum_threads (
     content TEXT NOT NULL,
     is_pinned BOOLEAN DEFAULT false,
     is_locked BOOLEAN DEFAULT false,
-    expires_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -109,76 +120,12 @@ CREATE TABLE IF NOT EXISTS forum_posts (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Quest/Chore system for kids
-CREATE TABLE IF NOT EXISTS quests (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    household_id UUID REFERENCES households(id) NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    points INTEGER NOT NULL DEFAULT 10 CHECK (points > 0),
-    frequency VARCHAR(20) DEFAULT 'daily' CHECK (frequency IN ('daily', 'weekly', 'monthly')),
-    assigned_to UUID REFERENCES users(id),
-    is_active BOOLEAN DEFAULT true,
-    created_by UUID REFERENCES users(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS quest_completions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    quest_id UUID REFERENCES quests(id) NOT NULL,
-    user_id UUID REFERENCES users(id) NOT NULL,
-    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    points_awarded INTEGER,
-    verified_by UUID REFERENCES users(id),
-    UNIQUE(quest_id, user_id, DATE(completed_at))
-);
-
--- Member points tracking
-CREATE TABLE IF NOT EXISTS member_points (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES users(id) NOT NULL,
-    household_id UUID REFERENCES households(id) NOT NULL,
-    points_balance INTEGER DEFAULT 0 NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, household_id)
-);
-
-CREATE TABLE IF NOT EXISTS rewards (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    household_id UUID REFERENCES households(id) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    points_cost INTEGER NOT NULL CHECK (points_cost > 0),
-    is_available BOOLEAN DEFAULT true,
-    stock_quantity INTEGER,
-    created_by UUID REFERENCES users(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS point_redemptions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    reward_id UUID REFERENCES rewards(id) NOT NULL,
-    user_id UUID REFERENCES users(id) NOT NULL,
-    points_spent INTEGER NOT NULL,
-    redeemed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'denied', 'fulfilled'))
-);
-
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_users_household ON users(household_id);
 CREATE INDEX IF NOT EXISTS idx_grocery_items_household ON grocery_items(household_id);
 CREATE INDEX IF NOT EXISTS idx_notes_household ON notes(household_id);
 CREATE INDEX IF NOT EXISTS idx_forum_threads_household ON forum_threads(household_id);
 CREATE INDEX IF NOT EXISTS idx_forum_posts_thread ON forum_posts(thread_id);
-CREATE INDEX IF NOT EXISTS idx_quests_household ON quests(household_id);
-CREATE INDEX IF NOT EXISTS idx_quest_completions_user ON quest_completions(user_id);
-CREATE INDEX IF NOT EXISTS idx_member_points_user ON member_points(user_id);
-CREATE INDEX IF NOT EXISTS idx_member_points_household ON member_points(household_id);
-CREATE INDEX IF NOT EXISTS idx_rewards_household ON rewards(household_id);
-CREATE INDEX IF NOT EXISTS idx_redemptions_user ON point_redemptions(user_id);
 
 -- Insert default forum categories
 INSERT INTO forum_categories (household_id, name, description)

@@ -104,3 +104,4 @@ After setting Root Directory to `backend`:
 
 **The Root Directory tells Railway: "Look for package.json in the 'backend' folder, not the root folder!"**
 
+

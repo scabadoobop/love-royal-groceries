@@ -4,8 +4,6 @@ import GroceryManager from './GroceryManager';
 import NotesManager from './NotesManager';
 import ForumManager from './ForumManager';
 import HouseholdManager from './HouseholdManager';
-import AdminQuestsManager from './AdminQuestsManager';
-import AdminRewardsManager from './AdminRewardsManager';
 import './MainApp.css';
 
 interface User {
@@ -22,7 +20,7 @@ interface MainAppProps {
 }
 
 export default function MainApp({ user, onLogout }: MainAppProps) {
-  const [activeTab, setActiveTab] = useState<'groceries' | 'notes' | 'forum' | 'household' | 'quests' | 'rewards'>('groceries');
+  const [activeTab, setActiveTab] = useState<'groceries' | 'notes' | 'forum' | 'household'>('groceries');
   const [householdInfo, setHouseholdInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -120,22 +118,6 @@ export default function MainApp({ user, onLogout }: MainAppProps) {
         >
           👥 Household
         </button>
-        {user.role === 'admin' && (
-          <>
-            <button 
-              className={`nav-button ${activeTab === 'quests' ? 'active' : ''}`}
-              onClick={() => setActiveTab('quests')}
-            >
-              ⚔️ Quests
-            </button>
-            <button 
-              className={`nav-button ${activeTab === 'rewards' ? 'active' : ''}`}
-              onClick={() => setActiveTab('rewards')}
-            >
-              🎁 Rewards
-            </button>
-          </>
-        )}
       </nav>
 
       <main className="app-main">
@@ -143,8 +125,6 @@ export default function MainApp({ user, onLogout }: MainAppProps) {
         {activeTab === 'notes' && <NotesManager />}
         {activeTab === 'forum' && <ForumManager />}
         {activeTab === 'household' && <HouseholdManager user={user} onLogout={onLogout} />}
-        {activeTab === 'quests' && user.role === 'admin' && <AdminQuestsManager userRole={user.role} />}
-        {activeTab === 'rewards' && user.role === 'admin' && <AdminRewardsManager userRole={user.role} />}
       </main>
     </div>
   );

@@ -3,7 +3,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 interface ApiResponse<T> {
   data?: T;
   error?: string;
-  errors?: Array<{ msg?: string; message?: string; param?: string }>;
   message?: string;
 }
 
@@ -34,12 +33,7 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error('API error response:', { status: response.status, statusText: response.statusText, data });
-        // Handle validation errors
-        if (data.errors && Array.isArray(data.errors)) {
-          return { errors: data.errors, error: data.errors.map((e: any) => e.msg || e.message).join(', ') };
-        }
-        return { error: data.error || `Request failed: ${response.status} ${response.statusText}` };
+        return { error: data.error || 'Request failed' };
       }
 
       return { data };
@@ -264,17 +258,10 @@ class ApiService {
     return this.request<{ threads: any[] }>(`/forum/categories/${categoryId}/threads?page=${page}&limit=${limit}`);
   }
 
-  async createThread(categoryId: string, title: string, content: string, expiresAt?: string) {
+  async createThread(categoryId: string, title: string, content: string) {
     return this.request<{ thread: any }>('/forum/threads', {
       method: 'POST',
-      body: JSON.stringify({ categoryId, title, content, expiresAt }),
-    });
-  }
-
-  async pinThread(threadId: string, isPinned: boolean) {
-    return this.request<{ thread: any }>(`/forum/threads/${threadId}/pin`, {
-      method: 'PATCH',
-      body: JSON.stringify({ isPinned }),
+      body: JSON.stringify({ categoryId, title, content }),
     });
   }
 
@@ -286,91 +273,6 @@ class ApiService {
     return this.request<{ post: any }>(`/forum/threads/${threadId}/posts`, {
       method: 'POST',
       body: JSON.stringify({ content }),
-    });
-  }
-
-  // Quests
-  async getQuests() {
-    return this.request<{ quests: any[] }>('/quests');
-  }
-
-  async getMyQuestProgress() {
-    return this.request<{ totalPoints: number; pointsSpent: number; availablePoints: number; todayCompletions: any[] }>('/quests/my-progress');
-  }
-
-  async getQuestLeaderboard() {
-    return this.request<{ leaderboard: any[] }>('/quests/leaderboard');
-  }
-
-  async createQuest(data: { title: string; description?: string; pointsReward: number; frequency?: 'daily' | 'weekly' | 'monthly'; assignedTo?: string | null }) {
-    return this.request<{ quest: any }>('/quests', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async updateQuest(questId: string, data: { title?: string; description?: string; pointsReward?: number; frequency?: 'daily' | 'weekly' | 'monthly'; assignedTo?: string | null; is_active?: boolean }) {
-    return this.request<{ quest: any }>(`/quests/${questId}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async deleteQuest(questId: string) {
-    return this.request(`/quests/${questId}`, {
-      method: 'DELETE',
-    });
-  }
-
-  async completeQuest(questId: string) {
-    return this.request<{ completion: any; pointsEarned: number }>(`/quests/${questId}/complete`, {
-      method: 'POST',
-    });
-  }
-
-  // Rewards
-  async getRewards() {
-    return this.request<{ rewards: any[] }>('/rewards');
-  }
-
-  async getMyRedemptions() {
-    return this.request<{ redemptions: any[] }>('/rewards/my-redemptions');
-  }
-
-  async createReward(name: string, description: string, points_cost: number, stock_quantity?: number) {
-    return this.request<{ reward: any }>('/rewards', {
-      method: 'POST',
-      body: JSON.stringify({ name, description, points_cost, stock_quantity }),
-    });
-  }
-
-  async updateReward(rewardId: string, data: { name?: string; description?: string; points_cost?: number; stock_quantity?: number; is_available?: boolean }) {
-    return this.request<{ reward: any }>(`/rewards/${rewardId}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async deleteReward(rewardId: string) {
-    return this.request(`/rewards/${rewardId}`, {
-      method: 'DELETE',
-    });
-  }
-
-  async redeemReward(rewardId: string) {
-    return this.request<{ redemption: any; availablePoints: number }>(`/rewards/${rewardId}/redeem`, {
-      method: 'POST',
-    });
-  }
-
-  async getAllRedemptions() {
-    return this.request<{ redemptions: any[] }>('/rewards/redemptions');
-  }
-
-  async updateRedemptionStatus(redemptionId: string, status: string) {
-    return this.request<{ redemption: any }>(`/rewards/redemptions/${redemptionId}`, {
-      method: 'PUT',
-      body: JSON.stringify({ status }),
     });
   }
 
